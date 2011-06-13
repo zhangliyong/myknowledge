@@ -1,0 +1,89 @@
+Be sure to use the right style for module, function, method and in-line comments.
+
+Doc Strings
+
+Python has a unique commenting style using doc strings. A doc string is a string that is the first statement in a package, module, class or function. These strings can be extracted automatically through the __doc__ member of the object and are used by pydoc. (Try running pydoc on your module to see how it looks.) Our convention for doc strings is to use the three double-quote format for strings. A doc string should be organized as a summary line (one physical line) terminated by a period, question mark, or exclamation point, followed by a blank line, followed by the rest of the doc string starting at the same cursor position as the first quote of the first line. There are more formatting guidelines for doc strings below.
+
+Modules
+
+Every file should contain the following items, in order:
+
+    a copyright statement (for example, Copyright 2008 Google Inc.)
+    a license boilerplate. Choose the appropriate boilerplate for the license used by the project (for example, Apache 2.0, BSD, LGPL, GPL)
+    an author line to identify the original author of the file
+
+Functions and Methods
+
+Any function or method which is not both obvious and very short needs a doc string. Additionally, any externally accessible function or method regardless of length or simplicity needs a doc string. The doc string should include what the function does and have detailed descriptions of the input and output. It should not, generally, describe how it does it unless it's some complicated algorithm. For tricky code block/inline comments within the code are more appropriate. The doc string should give enough information to write a call to the function without looking at a single line of the function's code. Args should be individually documented, an explanation following after a colon, and should use a uniform hanging indent of 2 or 4 spaces. The doc string should specify the expected types where specific types are required. A "Raises:" section should list all exceptions that can be raised by the function. The doc string for generator functions should use "Yields:" rather than "Returns:".
+
+def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
+    """Fetches rows from a Bigtable.
+
+    Retrieves rows pertaining to the given keys from the Table instance
+    represented by big_table.  Silly things may happen if
+    other_silly_variable is not None.
+
+    Args:
+        big_table: An open Bigtable Table instance.
+        keys: A sequence of strings representing the key of each table row
+            to fetch.
+        other_silly_variable: Another optional variable, that has a much
+            longer name than the other args, and which does nothing.
+
+    Returns:
+        A dict mapping keys to the corresponding table row data
+        fetched. Each row is represented as a tuple of strings. For
+        example:
+
+        {'Serak': ('Rigel VII', 'Preparer'),
+         'Zim': ('Irk', 'Invader'),
+         'Lrrr': ('Omicron Persei 8', 'Emperor')}
+
+        If a key from the keys argument is missing from the dictionary,
+        then that row was not found in the table.
+
+    Raises:
+        IOError: An error occurred accessing the bigtable.Table object.
+    """
+    pass
+
+Classes
+
+Classes should have a doc string below the class definition describing the class. If your class has public attributes, they should be documented here in an Attributes section and follow the same formatting as a function's Args section.
+
+class SampleClass(object):
+    """Summary of class here.
+
+    Longer class information....
+    Longer class information....
+
+    Attributes:
+        likes_spam: A boolean indicating if we like SPAM or not.
+        eggs: An integer count of the eggs we have laid.
+    """
+
+    def __init__(self, likes_spam=False):
+        """Inits SampleClass with blah."""
+        self.likes_spam = likes_spam
+        self.eggs = 0
+
+    def public_method(self):
+        """Performs operation blah."""
+
+Block and Inline Comments
+
+The final place to have comments is in tricky parts of the code. If you're going to have to explain it at the next code review, you should comment it now. Complicated operations get a few lines of comments before the operations commence. Non-obvious ones get comments at the end of the line.
+
+# We use a weighted dictionary search to find out where i is in
+# the array.  We extrapolate position based on the largest num
+# in the array and the array size and then do binary search to
+# get the exact number.
+
+if i & (i-1) == 0:        # true iff i is a power of 2
+
+To improve legibility, these comments should be at least 2 spaces away from the code.
+
+On the other hand, never describe the code. Assume the person reading the code knows Python (though not what you're trying to do) better than you do.
+
+# BAD COMMENT: Now go through the b array and make sure whenever i occurs
+# the next element is i+1

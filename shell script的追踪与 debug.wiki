@@ -1,0 +1,61 @@
+scripts 在执行之前，最怕的就是出现问题了！那么我们如何 debug 呢？有没有办法不
+需要透过直接执行该 scripts 就可以来判断是否有问题呢！？呵呵！ 当然是有的！我
+们就直接以 bash 的相关参数来进行判断吧！
+[root@linux ~]# sh [-nvx] scripts.sh
+参数：
+-n  ：不要执行 script，仅查询语法的问题；
+-v  ：再执行 sccript 前，先将 scripts 的内容输出到屏幕上；
+-x  ：将使用到的 script 内容显示到屏幕上，这是很有用的参数！
+范例：
+
+范例一：测试 sh16.sh 有无语法的问题？
+[root@linux ~]# sh -n sh16.sh 
+# 若语法没有问题，则不会显示任何信息！
+
+范例二：将 sh15.sh 的执行过程全部列出来～
+[root@linux ~]# sh -x sh15.sh 
++ 
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/home/vbird
+/bin
++ export PATH
++ for animal in dog cat elephant
++ echo 'There are dogs.... '
+There are dogs....
++ for animal in dog cat elephant
++ echo 'There are cats.... '
+There are cats....
++ for animal in dog cat elephant
++ echo 'There are elephants.... '
+There are elephants....
+# 使用 -x 真的是追踪 script 的好方法，他可以将所有有执行的程序段在执行前列出
+来，
+# 如果是程序段落，则输出时，最前面会加上 + 字号，表示他是程序代码而已，
+# 实际的输出则与 standard output 有关啊～如上所示。
+
+
+在上面的范例二当中，我们可以透过这个简单的参数 -x 来达成 debug 的目的，这可是
+一个不可多得的参数， 通常如果您执行 script 却发生问题时，利用这个 -x 参数，就
+可以知道问题是发生在哪一行上面了！
+
+熟悉 sh 的用法，将可以使您在管理 Linux 的过程中得心应手！至于在 Shell 
+scripts 的学习方法上面，需要『多看、多模仿、并加以修改成自己的样式！』 是最快
+的学习手段了！网络上有相当多的朋友在开发一些相当有用的 scripts ，若是您可以将
+对方的 scripts 拿来，并且改成适合自己主机的样子！那么学习的效果会是最快的呢！
+
+
+另外，我们 Linux 系统本来就有很多的启动 script ，如果您想要知道每个 script 所
+代表的功能是什么？ 可以直接以 vi 进入该 script 去查阅一下，通常立刻就知道该 
+script 的目的了。 举例来说，我们的 Linux 里头有个文件名称为： 
+/etc/init.d/portmap ，这个 script 是干嘛用的？ 利用 vi 去查阅最前面的几行字，
+他出现如下信息：
+# description: The portmapper manages RPC connections, which are used by 
+#              protocols such as NFS and NIS. The portmap server must be 
+#              running on machines which act as servers for protocols which 
+#              make use of the RPC mechanism.
+# processname: portmap
+
+
+简单的说，他是被用在 NFS 与 NIS 上面的一个启动 RPC 的 script ， 然后我们再利
+用 http://www.google.com.tw 去搜寻一下 NFS, NIS 与 RPC ， 立刻就能够知道这个 
+script 的功能啰～所以，下次您发现不明的 script 时， 如果是系统提供的，那么利
+用这个检查的方式，一定可以约略了解的啦！ 加油的啰～ ^_^

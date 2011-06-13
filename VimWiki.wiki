@@ -1,0 +1,86 @@
+vimwiki:是用来写wiki的插件,非常好用,
+这是它的官方地址:[http://code.google.com/p/vimwiki/]
+
+这是官方的中文文档:[http://code.google.com/p/vim-script-cn/source/browse/trunk/doc/vimwiki.cnx]
+下面是一些简单的应用:
+1 Vimwiki的基本配置
+
+Vimwiki的一些基本配置需要在vim配置文件中指定，主要是存储路径。
+
+读者可参照下例进行修改，然后放到_vimrc文件中：
+
+    " vimwiki
+    let g:vimwiki_use_mouse = 1
+    let g:vimwiki_list = [{'path': 'E:/vimwiki/',
+    \ 'path_html': 'E:/vimwiki/html/',
+    \ 'html_header': 'E:/vimwiki/template/header.tpl',}]
+
+最后3句分别指定了：
+- 存放Vimwiki文件的路径（Vimwiki的文件后缀为.wiki）
+- 从Vimwiki转换为Html网页时的保存路径；
+- Vimwiki转换网页时使用的网页模板的路径。
+
+2. Vimwiki入门：体验式教程
+
+进入首页
+操作：在Vim的Normal模式下，键入 \ww 三个键。
+结果：Vim就会打开wiki首页（index.wiki）。
+更多说明：① index.wiki所在目录见上述设置。② \ 键实际是<Leader>符，也可自定义。
+
+创建新页面
+操作：在首页中随便键入一些文字。比如， “这是wiki首页。 我要创建一个新页面 NewPage。”
+结果：NewPage 会高亮显示。
+
+更多说明：
+
+- NewPage 这样的格式称为驼峰词，是创建新页面的最方便的做法。
+- 对于更复杂的页面名称或中文页面名称，可以用双方括号表示。比如 [[中文页面]] 将创建 中文页面.wiki。括号内也可以用半角竖线分割，前半部分表示文件名，后半部分表示描述。比如 [[page3|我的第3篇wiki]] 将生成 page3.wiki 文件。而导出为html时，超链接的文字只有描述“我的第3篇wiki”。这种做法可以兼顾文件名的精简、规律、规范，与人工阅读的直观。采用Vim7.3中的最新 conceal text 特性，也可以在wiki中直接隐藏这些不用显示的符号，详见 这篇文章。
+- “快速引用某页面，并且，该页面若不存在则自动创建”是wiki的核心优势之一。
+
+跳转到新页面
+操作：在 Normal 模式下用光标双击 NewPage。
+结果：index.wiki自动保存、关闭。在当前窗口打开了 NewPage.wiki 页面。
+
+更多说明：
+- Enter：与双击效果等同，在当前窗口中打开NewPage页面。
+- Shift+Enter：上下分割窗口，NewPage在上，原页面在下。
+- Ctrl+Enter：左右分割窗口，NewPage在左，原页面在右。
+
+返回首页
+操作：在 NewPage 中输入一些内容。进入Normal模式，按BackSpace。
+结果：NewPage自动保存；并返回index.wiki页面；此时 NewPage 变成了另外一种高亮（区分
+
+2.1 Vimwiki的基本语法摘要
+
+Vimwiki的下载主页上面给出一个快速学习Vimwiki语法的知识卡片(pdf格式,可通过一些软件转换为图片),从上面便可知道所有的Vimwiki中使用的语法,十分简单,方便使用.
+
+PDF地址: http://habamax.ru/myvim/data/vimwikiqrc.pdf
+
+2.1.1 普通语法:
+
+*bold* -- bold
+_italic_ -- italic
+WikiWord -- link to WikiWord （这是驼峰词的用法）
+[[complex wiki link]] -- link to complex wiki link
+Indent lists with at least 1 space:
+* bullet item
+# numbered list item
+= Header1 =
+== Header2 ==
+=== Header3 ===
+
+2.2 Vimwiki键盘指令
+<Leader>ww -- 打开默认的wiki主页
+<Leader>wt -- 在新的标签页中打开默认的wiki主页
+<Leader>ws -- Select and open wiki index file.(未知)
+<Leader>wd -- 删除你所在的wikiword的页面
+<Leader>wr -- 重命名你所在的wikiword页面
+Backspace -- 返回上一页
+Tab -- 寻找下一个wikiword
+Shift Tab -- 寻找上一个wikiword
+如果有什么不懂,可输入在"Normal"下输入":h vimwiki-mappings"查询
+
+2.3 Vimwiki发布为html网页
+Vimwiki可导出为html格式，便于发布为网页。
+输入':Vimwiki2HTML -- 将当前wiki页转换成Html格式'
+输入':VimwikiAll2HTML -- 将所有的wiki页转换成HTML格式'

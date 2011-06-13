@@ -1,0 +1,59 @@
+Bash函数，不同于其他编程语言的函数，它更像一个子程序，即其返回值，只能是一个数字，以0表示成功，非0表示失败。如果，您在bash函数中想返回除了数字之外的值，就需要自己设计一定的技巧了。今天看到了一篇文章，简单介绍了三种技巧，笔者翻译下来，与大家分享。
+
+假设我们想返回一个字符串，最简单的方法是：
+
+function myfunc()
+{
+    myresult='the value'
+}
+myfunc
+echo $myresult
+
+通过一个全局变量myresult，来保存返回值。使用全局变量，其缺点也是不言而喻的。
+
+第二种方法：
+
+function myfunc()
+{
+    local  myresult='some value'
+    echo "$myresult"
+}
+ 
+result=$(myfunc)   # or result=`myfunc`
+echo $result
+
+将一个shell函数作为一个子程序调用，将返回值写到子程序的标准输出，来达到返回任意字符串的目的。
+
+第三种方法：
+
+function myfunc()
+{
+    local  __resultvar=$1
+    local  myresult='some value'
+    eval $__resultvar="'$myresult'"
+}
+ 
+myfunc result
+echo $result
+
+这种方法，类似于C++中的通过引用返回函数值的做法。
+
+当然，您还可以结合后两种方法：
+
+function myfunc()
+{
+    local  __resultvar=$1
+    local  myresult='some value'
+    if [[ "$__resultvar" ]]; then
+        eval $__resultvar="'$myresult'"
+    else
+        echo "$myresult"
+    fi
+}
+ 
+myfunc result
+echo $result
+result2=$(myfunc)
+echo $result2
+
+这样，获得了最大的灵活。

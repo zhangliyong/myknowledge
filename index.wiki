@@ -1,0 +1,16 @@
+ = My knowledge =
+
+ 	* [[TODOList]]
+ 		* 看一下kindle的源代码,修改其中的一个js文件,使能打开_blank的链接. url:[http://hi.baidu.com/canbefound/blog/item/40b054d2c6ad00c5572c84b7.html]
+
+	* LibIP -- The ip address in library.
+		* 10.139.20.42 23D
+	* VimPlugins -- the good plugins I used
+	* [[Collections]] -- some good resource.
+	* LinuxNotes -- some notes about linux.
+	* [[名言]]
+	* [[如何加入一个开源项目]]
+	* [[python 命令规则]]
+	* PythonComments -- python comments.
+	* MyGitHub
+	* UbuntuColor -- ubuntu 下配置颜色保护眼睛

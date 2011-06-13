@@ -1,0 +1,7 @@
+ubuntu 下默认的配置
+windows background:#F2F1F0
+inputbox background: #FFFFFF
+
+保护眼睛的配色为：
+windows background: #EBF7BE
+inputbox background: #CCE8CF

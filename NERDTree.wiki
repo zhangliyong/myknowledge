@@ -1,0 +1,25 @@
+現在的編輯器左邊通常都會是檔案的列表, Vim 要呈現這個效果只要 ":vsp ./" 就可以達到, Enter 後也會自動將檔案載入並開啟編輯, 不過視窗並沒有一直滯留在旁邊, 要開啟多個檔案就會比較麻煩, 有些狀況是想要將檔案開啟到 Vim 的 Tab 去, 就有點問題. 
+
+替 NERDTree 設定開啟的快速鍵
+
+NERDTree 要開啟時要輸入 ":NERDTree", 關閉時按 "q" 即可. 但是開啟時要輸入的字串太長是個麻煩, 所以來幫它加上快速鍵, 步驟如下:
+
+    vim ~/.vimrc
+    加入此行
+
+        nnoremap <silent> <F7> :NERDTreeToggle<CR> 
+
+    這樣子按 F5 就會自動展開囉~
+
+NERTTree 常用快速鍵
+
+於開啟 NERDTree 後, 可以按 ? 看所有的快速鍵說明, 在此只列幾個常用的.
+
+    :NERDTreeToggle 開关
+    ? Help
+    i 開在 split 視窗
+    t 開在新的 tab
+    o Open file / directory
+    x close directory
+    q 關掉
+

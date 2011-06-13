@@ -1,0 +1,2 @@
+vim.org上提供了一款更好的python缩进插件:
+[http://www.vim.org/scripts/script.php?script_id=974]

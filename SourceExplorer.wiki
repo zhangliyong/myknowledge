@@ -1,0 +1,5 @@
+url: [http://www.vim.org/scripts/script.php?script_id=2179]
+
+The plugin (srcexpl.vim) is a source code explorer based on tags and it provides an overview of the function and type definitions.It has such a mechannism that works like the context window component of "Source Insight" software.
+
+If you have used Source Insight for browseing C/C++/Java project before, you may find that you can browse the definitions with the Source Explorer as well as the context window of "Source Insight".

@@ -1,0 +1,23 @@
+数值运算的方法
+各位看官应该还记得，我们可以使用 declare 来定义变量的类型吧？！ 这样才能够进
+行加减运算啊！可惜的是， bash shell 里头预设仅支持到整数的数据。 OK！那我们来
+玩玩看，如果我们要使用者输入两个变量，然后将两个变量的内容相乘， 最后输出相乘
+的结果，那可以怎么做？
+[root@linux scripts]# vi sh04.sh
+#!/bin/bash
+# Program:
+#         User can input 2 integer to cross by!
+# History:
+# 2005/08/23        VBird        First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+echo -e "You SHOULD input 2 number, I will cross they! "
+read -p "first number:  " firstnu
+read -p "second number: " secnu
+total=$(($firstnu*$secnu))
+echo -e " The number $firstnu x $secnu is ==>; $total"
+
+在数字的运算上，我们可以使用『 declare -i total=$firstnu*$secnu 』 也可以使用
+上面的方式来进行！基本上，鸟哥比较建议使用这样的方式来进行运算：
+var=$((运算内容))
+

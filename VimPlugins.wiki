@@ -1,0 +1,7 @@
+VimWiki -- 用vim写wiki的插件
+[[NERDTree]] -- vim下的树状目录
+[[python.vim]] -- 更好的支持python的缩进
+SingleCompile -- compile and run one source file conveniently without leaving vim
+SourceExplorer -- A Source code Explorer based on tags works like context window in Source Insight 
+[[bufexplorer]] -- Buffer Explorer / Browser 
+[[git-vim]] -- 一个在vim中使用git的插件
