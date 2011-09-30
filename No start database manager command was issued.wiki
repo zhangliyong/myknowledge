@@ -1,0 +1,19 @@
+﻿++ No start database manager command was issued
+
+Hi Sam,
+Is this solved? If not, just do the following.
+0. Login as the Instance owner. [if you have installed db2 as 
+Administrator, then login as Administrator]
+1. Open a db2 command prompt.
+Then, Start->run->db2cmd
+A command prompt will open.
+2. There you run the command 
+db2 start db manager 
+It should say that it is started if it is not started
+or 
+it should say that it is active if it is active.
+If the error is different, then try this
+db2 start db manager user db2admin USING db2admin
+The word after the USING is the password of db2admin. If you 
+have changed the password of db2admin, then use that password.
+3. Now open the Control Center and try to create the database.

@@ -1,0 +1,70 @@
+﻿++ 5 Ways You can Learn Programming Faster
+
+Learning to program isn't something you can do in an afternoon, but it doesn't have to be a life's work, either. There are lots of things you can do to make it easier on yourself when you are learning to program. You already know about The 5 Most Common Problems New Programmers Face--And How You Can Solve Them. Now, discover how to get the most out of your learning. 
+
+One common theme across many of these tips is: 
+
+don't go too fast; get it right before moving on.
+
+When I was teaching C, there were always a few students who came into the class knowing a bit about programming. Inevitably, some of these students did great in the first few weeks only to fall further and further behind as the course went on. Why? They went too fast through the introductory part of the course, thinking they knew it all--but they rarely did. They knew some of the material, but not enough to have a strong grasp of the fundamentals. 
+
+
+At the same time, you must not stop making progress--you can go too slow as well as too fast. Don't avoid a topic after you've mastered everything leading up to it. By facing more challenging ideas, you'll help cement your grasp of the basics.
+1. Look at the Example Code
+
+Reading is usually about the words on the page, but learning to program is about code. When you're first learning to program, you should make sure to look at, and try to understand, every example. When I first learned to program, I would sometimes read the code examples before the text, and try to figure out what they did. It doesn't always work, but it did force me to look at the example very carefully, and it often helped make the writeups clearer. 
+
+If you want to see what sample code looks like, you can read this site's introductory programming tutorial. This tutorial spends a great deal of time talking about the sample code to help you work through exactly what the code does.
+2. Don't Just Read Example Code--Run It
+
+But when you're reading a programming tutorial (or book), it's easy to look at the sample code and say "I get it, I get it, that makes sense". Of course, you might get it, but you might not get it, and you just don't know it. There's only one way to find out--do something with that code. 
+
+If you haven't already, get a compiler like Code::Blocks set up. 
+
+Then type the sample code into a compiler--if you type it, instead of copying and pasting it, you will really force yourself to go through everything that is there. Typing the code will force you to pay attention to the details of the syntax of the language--things like those funny semicolons that seem to go after every line. 
+
+Then compile it and run it. Make sure it does what you think it does. 
+
+Then change it. Software is the most easily changed machinery on the planet. You can experiment easily, try new things, see what happens; the changes will happen almost immediately, and there is no risk of death or mayhem. The easiest way to learn new language features is to take some code that works one way, and change it.
+3. Write your Own Code as Soon as Possible
+
+Once you understand something about the language--or even if you're still getting your head around it--start writing sample programs that use it. Sometimes it's hard to find good ideas for what programs to write. That's OK, you don't have to come up with every idea at the beginning. 
+
+You can find some programming challenges on this site. 
+
+You can also reimplement the examples from the book or tutorial you are reading. Try to do so without looking back at the sample code; it won't be as easy as it seems. This technique can work especially well if you tweak the sample code. 
+
+If you can't think of a small program to write, but you have in mind a larger program you want to implement, like a game, you could start building small pieces that you can later use for a game. Whether you use them later or not, you will get the same useful experience.
+4. Learn to Use a Debugger
+
+I already talked about the importance of debugging in The 5 Most Common Problems New Programmers Face--And How You Can Solve Them. But it bears repeating; the sooner you learn good debugging techniques, easier it will be to learn to program. 
+
+The first step in doing so is to learn how to use a tool called a debugger, which allows you to step through your code. 
+
+A debugger will allow you to step line by line through a piece of code. It will let you see the values of variables, and whether the code inside an if statement is executed. 
+
+A debugger can help you quickly answer questions about what your code is doing.
+int main() {
+    int x;
+    int y;
+    if (x & gt; 4) // <-- what is the value of x here?
+    {
+        y = 5; // <-- did this line of code execute?
+    }
+}
+
+
+A final word about debuggers: the first time you learn about a debugger, it will take you longer to fix the problems with your code. After the tenth or so bug, it will really start to pay off. And believe me, you will have way more than ten bugs in your programming career. 
+
+I often saw students unwilling to use a debugger. These students really made life hard on themselves, taking ages to find very simple bugs. The sooner you learn to use a debugger, the sooner it will pay off.
+5. Seek out More Sources
+
+If you don't understand something, there's a good possiblity the way it was explained just didn't click. 
+
+First, look for alternative explanations. The internet is filled with information about programming, and some explanations work better for different people; you might need pictures, someone else might not. There are also lots of good books with detailed explanations. 
+
+But if that doesn't work, the easiest way to figure out where your misunderstanding lies is to ask someone else. But try to go beyond saying, "I don't understand. Please explain." You're likely to get a link back to the same text you didn't understand. Instead, rephrase your understanding of the text in your words. The more your question reveals about what you are thinking, the easier it will be for a knowledgeable expert to answer it. Programmers sometimes have a reputation for being grumpy about answering questions, but I think the reason is that they want to make progress in a conversation, and that requires both sides to put in effort. If you ask a smart, detailed question that shows you are thinking, you will generally get good results. 
+
+There are plenty of places you can go to ask questions. You can always email me, or post on our message board, or ask an expert. 
+
+In the coming days, I'll be writing more about how to learn to program effectively. Stay tuned, by subscribing to our RSS feed, signing up for email notifications, or following @alexallain on twitter. 

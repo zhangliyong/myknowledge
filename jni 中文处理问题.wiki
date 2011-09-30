@@ -1,0 +1,340 @@
+转自：http://www.vckbase.com/document/viewdoc/?id=1611
+==JNI中文处理问题小结==
+
+作者:大卫的思维空间
+
+　　由于工作关系，需要利用JNI在C++与Java程序之间进行方法调用和数据传递，但以前总是在英文环境下工作，对中文（其他语言编码同理）问题反倒没有太关注，最近抽了点时间研究了一下，将自己的体会整理如下，供大家讨论或参考。
+在进一步讨论之前，有几点基础知识需要说明：
+
+在Java内部，所有的字符串编码采用的是Unicode即UCS-2。Unicode是用两个字节表示每个字符的字符编码方案。Unicode有一个特性：它包括了世界上所有的字符字形。所以，各个地区的语言都可以建立与Unicode的映射关系，而Java正是利用了这一点以达到异种语言之间的转换；
+UTF-8是另一种不同于UCS-2/UCS-4的编码方案，其中UTF代表UCS Transformation Format，它采用变长的方式进行编码，编码长度可以是1~3（据说理论上最长可以到6，不懂）。
+由于UCS-2/UCS-4编码定长的原因，编码产生的字符串会包含一些特殊的字符，如\0（即0x0，所有0~256的字符Unicode编码的第一个字节），这在有些情况下（如传输或解析时）会给我们带来一些麻烦，而且对于一般的英文字母浪费了太多的空间，此外，据说UTF-8还有Unicode所没有的纠错能力（不懂！），因此，Unicode往往只是被用作一种中间码，用于逻辑表示。关于Unicode/UTF-8的更多信息，见参考1；
+　　Java中文乱码问题在很多情况下都可能发生：不同应用间，不同平台间等等，但以上问题已有大量优秀的文章讨论过，这里不作深入探讨，详见参考2、3、4、5。下面简要总结一下：
+
+当我们使用默认编码方式保存源文件时，文件内容实际上是按照我们的系统设定进行编码保存的，这个设定值即file.encoding可以通过下面的程序获得：
+public class Encoding {
+    public static void main(String[] args) {
+        System.out.println(System.getProperty("file.encoding"));
+    }
+}
+javac在不指定encoding参数时，如果区域设定不正确，则可能造成编/解码错误，这个问题在编译一个从别的环境传过来的文件时可能发生；
+2、虽然在Java内部（即运行期间，Runtime）字符串是以Unicode形式存在的，但在class文件中信息是以UTF-8形式存储的（Unicode仅被用作逻辑表示中间码） ；
+对于Web应用，以Tomcat为例，JSP/Servlet引擎提供的JSP转换工具（jspc）搜索JSP文件中用<%@ page contentType ="text/html; charset=<Jsp-charset>"%>指定的charset。如果在JSP文件中未指定<Jsp-charset>，则取系统默认的file.encoding（这个值在中文平台上是GBK），可通过控制面板的Regional Options进行修改；jspc用相当于“javac –encoding <Jsp-charset>”的命令解释JSP文件中出现的所有字符，包括中文字符和ASCII字符，然后把这些字符转换成Unicode字符，再转化成UTF-8格式，存为JAVA文件。
+我曾经偶然将jsp文件存成UTF-8，而在文件内部使用的charset却是GB2312，结果运行时总是无法正常显示中文，后来转存为默认编码方式才正常。只要文件存储格式与JSP开头的charset设置一致，就都可以正常显示（不过将文件保存成UTF-16的情况下我还没有试验成功）；
+在XML文件中，encoding表示的是文件本身的编码方式，如果这个参数设定与文件本身实际的编码方式不一致的话，则可能解码失败，所以应该总是将encoding设置成与文件编码方式一致的值；而JSP/HTML的charset则表示按照何种字符集来解码从文件中读取出来的字符串（在理解中文问题时应该把字符串理解成一个二进制或16进制的串，按照不同的charset可能映射成不同的字符）。
+我曾经在网上就encoding的具体含义跟别人讨论过：如果encoding指的是文件本身的编码方式，那么读取该文件的应用程序在不知道encoding设置的情况下如何正确解读该文件呢？
+根据讨论及个人理解，处理程序（如jspc）总是按ISO8859-1来读取输入文件，然后检查文件开始的几个字节（即Byte Order Mark，BOM，具体如何判断，可以参考Tomcat源码$SOURCE_DIR\jasper\jasper2\src\share\org\apache\jasper\xmlparser\XMLEncodingDetector.java的getEncodingName方法，在JSP Specification的Page Character Encoding一节也有详细论述）以探测文件是以何种格式保存的，当解析到encoding选项时，若encoding设置与文件实际保存格式不一致，会尝试进行转换，但这种转换可能在文件实际以ISO8859-1/UTF-8等单字节编码而encoding被设置成Unicode、UTF-16等双字节编码时发生错误。
+下面重点讨论JNI中在C++程序与Java程序间进行数据传递时需要注意的问题。
+
+　　在JNI中jstring采用的是UCS-2编码，与Java中String的编码方式一致。但是在C++中，字符串是用char（8位）或者wchar_t（16位，Unicode编码与jchar一致，但并非所有开发平台上都是Unicode编码，详见参考6），下面的程序证明了这一点（编译环境：VC6）：
+
+#include <iostream>
+using namespace std;
+
+int main()
+{
+    locale loc( "Chinese-simplified" );
+    //locale loc( "chs" );
+    //locale loc( "ZHI" );
+    //locale loc( ".936" );
+    wcout.imbue( loc );
+
+    wcout << L"中文" << endl; //若没有L，会出问题
+
+    wchar_t wch[] = {0x4E2D, 0x6587, 0x0}; //"中文"二字的Unicode编码
+    wcout << wch << endl;
+
+    return 0;
+}
+JNI提供了几个方法来实现jstring与char/wchar_t之间的转换。
+jsize GetStringLength(jstring str)
+const jchar *GetStringChars(jstring str, jboolean *isCopy)
+void ReleaseStringChars(jstring str, const jchar *chars)
+此外，为了便于以UTF-8方式进行传输、存储，JNI还提供了几个操作UTF格式的方法：
+jsize GetStringUTFLength(jstring str)
+const char* GetStringUTFChars(jstring str, jboolean *isCopy)
+void ReleaseStringUTFChars(jstring str, const char* chars)
+GetStringChars返回的是Unicode格式的编码串，而GetStringUTFChars返回的是UTF-8格式的编码串。 要创建一个jstring，可以用如下方式：
+jstring NewJString( JNIEnv * env, LPCTSTR str )
+{
+    if (!env || !str)
+        return 0;
+
+    int slen = strlen(str);
+    jchar * buffer = new jchar[slen];
+    int len = MultiByteToWideChar(CP_ACP, 0, str, strlen(str), buffer, slen);
+
+    if (len > 0 && len < slen)
+        buffer[len] = 0;
+
+    jstring js = env->NewString(buffer, len);
+    delete [] buffer;
+    return js;
+}
+而要将一个jstring对象转为一个char字符串数组，可以：
+int JStringToChar( JNIEnv * env, jstring str, LPTSTR desc, int desc_len )
+{
+    int len = 0;
+
+    if (desc == NULL || str == NULL)
+        return -1;
+
+    // Check buffer size
+    if (env->GetStringLength(str) * 2 + 1 > desc_len)
+    {
+        return -2;
+    }
+    memset(desc, 0, desc_len);
+
+    const wchar_t * w_buffer = env->GetStringChars(str, 0);
+    len = WideCharToMultiByte(CP_ACP, 0, w_buffer, wcslen(w_buffer) + 1, desc, desc_len, NULL, NULL);
+    env->ReleaseStringChars(str, w_buffer);
+
+    if (len > 0 && len < desc_len)
+        desc[len] = 0;
+
+    return strlen(desc);
+}
+　　当然，按照上面的分析，你也可以直接将GetStringChars的返回结果作为wchar_t串来进行操作。或者，如果你愿意，你也可以将GetStringUTFChars的结果通过MultiByteToWideChar转换为UCS2编码串，再通过WideCharToMultiByte转换为多字节串。
+const char* pstr = env->GetStringUTFChars(str, false);
+int nLen = MultiByteToWideChar( CP_UTF8, 0, pstr, -1, NULL, NULL );//得到UTF-8编码的字符串长度
+LPWSTR lpwsz = new WCHAR[nLen];    
+MultiByteToWideChar( CP_UTF8, 0, pstr, -1, lpwsz, nLen );//转换的结果是UCS2格式的编码串
+int nLen1 = WideCharToMultiByte( CP_ACP, 0, lpwsz, nLen, NULL, NULL, NULL, NULL );    
+LPSTR lpsz = new CHAR[nLen1];
+WideCharToMultiByte( CP_ACP, 0, lpwsz, nLen, lpsz, nLen1, NULL, NULL );//将UCS2格式的编码串转换为多字节
+
+cout << "Out:" << lpsz << endl;
+
+delete [] lpwsz; delete [] lpsz;
+　　当然，我相信很少有人想要或者需要这么做。 这里需要注意一点，GetStringChars的返回值是jchar，而GetStringUTFChars的返回值是const char*。 除了上面的办法外，当需要经常在jstring和char*之间进行转换时我们还有一个选择，那就是下面的这个类。这个类本来是一个叫Roger S. Reynolds的老外提供的，想法非常棒，但用起来却不太灵光，因为作者将考虑的重心放在UTF格式串上，但在实际操作中，我们往往使用的却是ACP（ANSI code page）串。下面是原作者的程序：
+
+class UTFString {
+private:
+
+    UTFString (); // Default ctor - disallowed 
+
+public:
+
+    // Create a new instance from the specified jstring 
+    UTFString(JNIEnv* env, const jstring& str) :
+        mEnv (env),
+        mJstr (str),
+        mUtfChars ((char* )mEnv->GetStringUTFChars (mJstr, 0)),
+        mString (mUtfChars) { }
+
+    // Create a new instance from the specified string 
+    UTFString(JNIEnv* env, const string& str) :
+        mEnv (env),
+        mString (str),
+        mJstr (env->NewStringUTF (str.c_str ())),
+        mUtfChars ((char* )mEnv->GetStringUTFChars (mJstr, 0)) { }
+
+    // Create a new instance as a copy of the specified UTFString 
+    UTFString(const UTFString& rhs) :
+        mEnv (rhs.mEnv),
+        mJstr (mEnv->NewStringUTF (rhs.mUtfChars)),
+        mUtfChars ((char* )mEnv->GetStringUTFChars (mJstr, 0)),
+        mString (mUtfChars) { }
+
+    // Delete the instance and release allocated storage 
+    ~UTFString() { mEnv->ReleaseStringUTFChars (mJstr, mUtfChars); }
+
+    // assign a new value to this instance from the given string 
+    UTFString & operator =(const string& rhs) {
+        mEnv->ReleaseStringUTFChars (mJstr, mUtfChars);
+        mJstr = mEnv->NewStringUTF (rhs.c_str ());
+        mUtfChars = (char* )mEnv->GetStringUTFChars (mJstr, 0);
+        mString = mUtfChars;
+        return *this;
+    }
+
+    // assign a new value to this instance from the given char* 
+    UTFString & operator =(const char* ptr) {
+        mEnv->ReleaseStringUTFChars (mJstr, mUtfChars);
+        mJstr = mEnv->NewStringUTF (ptr);
+        mUtfChars = (char* )mEnv->GetStringUTFChars (mJstr, 0);
+        mString = mUtfChars;
+        return *this;
+    }
+
+    // Supply operator methods for converting the UTFString to a string 
+    // or char*, making it easy to pass UTFString arguments to functions 
+    // that require string or char* parameters. 
+    string & GetString() { return mString; }
+    operator string() { return mString; }
+    operator const char* () { return mString.c_str (); }
+    operator jstring() { return mJstr; }
+
+private:
+
+    JNIEnv* mEnv;    // The enviroment pointer for this native method. 
+    jstring mJstr;   // A copy of the jstring object that this UTFString represents 
+    char* mUtfChars; // Pointer to the data returned by GetStringUTFChars 
+    string mString;  // string buffer for holding the "value" of this instance 
+};
+我将它改了改：
+class JNIString {
+private:
+
+    JNIString (); // Default ctor - disallowed
+
+public:
+
+    // Create a new instance from the specified jstring
+    JNIString(JNIEnv* env, const jstring& str) :
+        mEnv (env) {
+        const jchar* w_buffer = env->GetStringChars (str, 0);
+        mJstr = env->NewString (w_buffer,
+                                wcslen (w_buffer)); // Deep Copy, in usual case we only need 
+						// Shallow Copy as we just need this class to 
+						// provide some convenience for handling jstring
+
+        mChars = new char[wcslen (w_buffer) * 2 + 1];
+        WideCharToMultiByte (CP_ACP, 0, w_buffer, wcslen (w_buffer) + 1, mChars, wcslen (w_buffer) * 2 + 1,
+                             NULL,   NULL);
+        env->ReleaseStringChars (str, w_buffer);
+
+        mString = mChars;
+    }
+
+    // Create a new instance from the specified string
+    JNIString(JNIEnv* env, const string& str) :
+        mEnv (env) {
+        int slen = str.length ();
+        jchar* buffer = new jchar[slen];
+        int len = MultiByteToWideChar (CP_ACP, 0, str.c_str (), str.length (), buffer, slen);
+
+        if (len > 0 && len < slen)
+            buffer[len] = 0;
+
+        mJstr = env->NewString (buffer, len);
+        delete [] buffer;
+
+        mChars = new char[str.length () + 1];
+        strcpy (mChars, str.c_str ());
+
+        mString.empty ();
+        mString = str.c_str ();
+    }
+
+    // Create a new instance as a copy of the specified JNIString
+    JNIString(const JNIString& rhs) :
+        mEnv (rhs.mEnv) {
+        const jchar* wstr = mEnv->GetStringChars (rhs.mJstr, 0);
+        mJstr = mEnv->NewString (wstr, wcslen (wstr));
+        mEnv->ReleaseStringChars (rhs.mJstr, wstr);
+
+        mChars = new char[strlen (rhs.mChars) + 1];
+        strcpy (mChars, rhs.mChars);
+
+        mString = rhs.mString.c_str ();
+    }
+
+    // Delete the instance and release allocated storage
+    ~JNIString() { delete [] mChars; }
+
+    // assign a new value to this instance from the given string
+    JNIString & operator =(const string& rhs) {
+        delete [] mChars;
+
+        int slen = rhs.length ();
+        jchar* buffer = new jchar[slen];
+        int len = MultiByteToWideChar (CP_ACP, 0, rhs.c_str (), rhs.length (), buffer, slen);
+
+        if (len > 0 && len < slen)
+            buffer[len] = 0;
+
+        mJstr = mEnv->NewString (buffer, len);
+        delete [] buffer;
+
+        mChars = new char[rhs.length () + 1];
+        strcpy (mChars, rhs.c_str ());
+
+        mString = rhs.c_str ();
+
+        return *this;
+    }
+
+    // Supply operator methods for converting the JNIString to a string
+    // or char*, making it easy to pass JNIString arguments to functions
+    // that require string or char* parameters.
+    string & GetString() { return mString; }
+    operator string() { return mString; }
+    operator const char* () { return mString.c_str (); }
+    operator jstring() { return mJstr; }
+
+private:
+
+    JNIEnv* mEnv;   // The enviroment pointer for this native method.
+    jstring mJstr;  // A copy of the jstring object that this JNIString represents
+    char* mChars;   // Pointer to a ANSI code page char array
+    string mString; // string buffer for holding the "value" of this instance (ANSI code page)
+};
+　　后者除了将面向UTF编码改成了面向ANSI编码外，还去掉了operator =(const char* ptr)的定义，因为 operator =(const string& rhs)可以在需要的时候替代前者而无需任何额外编码。（因为按照C++规范，const reference可以自动转换，详见本人另一文章“关于 const reference 的几点说明”）
+　　如果你愿意，给JNIString再加个JNIString(JNIEnv* env, const wstring& str)和一个operator =(const wstring& rhs)操作符重载就比较完美了，:)，很简单，留给用得到的朋友自己加吧。
+下面是一个使用该类的例子（真正跟用于演示的code很少，大部分都是些routine code，:)）：
+#include <iostream>
+#include <string>
+#include <assert.h>
+#include <jni.h>
+
+using namespace std;
+
+int main() {
+    int res;
+    JavaVM* jvm;
+    JNIEnv* env;
+    JavaVMInitArgs vm_args;
+    JavaVMOption options[3];
+
+    options[0].optionString = "-Djava.compiler=NONE";
+    options[1].optionString = "-Djava.class.path=.;.."; // .. is specially for this project
+    options[2].optionString = "-verbose:jni";
+    vm_args.version = JNI_VERSION_1_4;
+    vm_args.nOptions = 3;
+    vm_args.options = options;
+    vm_args.ignoreUnrecognized = JNI_TRUE;
+    res = JNI_CreateJavaVM (& jvm, (void* * )& env, & vm_args);
+
+    if (res < 0) {
+        fprintf (stderr, "Can''t create Java VM\n");
+        return 1;
+    }
+
+    jclass cls = env->FindClass ("jni/test/Demo");
+    assert (0 != cls);
+
+    jmethodID mid = env->GetMethodID (cls, "", "(Ljava/lang/String;)V");
+    assert (0 != mid);
+
+    wchar_t* p = L"中国";
+    jobject obj = env->NewObject (cls, mid, env->NewString (reinterpret_cast (p), wcslen (p)));
+    assert (0 != obj);
+
+    mid = env->GetMethodID (cls, "getMessage", "()Ljava/lang/String;");
+    assert (0 != mid);
+
+    jstring str = (jstring)env->CallObjectMethod (obj, mid);
+
+    // use JNIString for easier handling.
+    JNIString jnistr (env, str);
+    cout << "JNIString:" << jnistr.GetString () << endl;
+
+    jnistr = "中文";
+    cout << jnistr.GetString () << endl;
+
+    jvm->DestroyJavaVM ();
+    fprintf (stdout, "Java VM destory.\n");
+
+    return 0;
+}
+参考资料：
+UTF-8 and Unicode FAQ for Unix/Linuxs，http://www.cl.cam.ac.uk/~mgk25/unicode.html，
+其中文翻译见http://www.linuxforum.net/books/UTF-8-Unicode.html
+深入剖析Java编程中的中文问题及建议最优解决方法，http://blog.csdn.net/abnerchai/archive/2004/04/28/18576.aspx
+关于Java中文问题的几条分析原则，http://www-900.ibm.com/developerWorks/cn/java/l-javachinese/index.shtml
+Java 编程技术中汉字问题的分析及解决，http://www-900.ibm.com/developerWorks/cn/java/java_chinese/index.shtml
+深入剖析JSP和Servlet对中文的处理过程，http://blog.csdn.net/deuso/archive/2005/12/01/541511.aspx
+宽字符标量L"xx"在VC6.0/7.0和GNU g++中的不同实现，http://blog.vckbase.com/smileonce/archive/2004/12/09/1972.html
+XML Encoding，http://www.w3schools.com/xml/xml_encoding.asp

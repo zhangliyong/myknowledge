@@ -1,0 +1,52 @@
+﻿++ mount 使用汇总
+
+Linux系统在使用光盘、软盘或U盘时，必须先执行挂载（mount）命令。挂载命令会将这些存储介质指定成系统中的某个目录，以后直接访问相应目录即可读写存储介质上的数据。 
+　　 
+　　1.挂载光盘 
+　　 
+　　挂载光盘的命令如下： 
+　　 
+　　# mount -t is09660 /dev/cdrom /mnt/cdrom 
+　　 
+　　该命令将光盘挂载到/mnt/cdrom目录，使用“ls /mnt/cdrom”命令即可显示光盘中数据和文件。 
+　　 
+　　卸载光盘的命令如下： 
+　　 
+　　# umount /mnt/cdrom 
+　　 
+　　2.挂载软盘 
+　　 
+　　将软盘挂载到/mnt/floppy目录的命令如下： 
+　　 
+　　# mount /dev/fd0 /mnt/floppy 
+　　 
+　　卸载软盘的命令如下： 
+　　 
+　　#umount /mnt/floppy 
+　　 
+　　3.挂载U盘挂载U盘相对复杂一些。 
+　　 
+　　首先使用“fdisk -l”命令查看外挂闪存的设备号，一般为/dev/sda1。然后用“mkdir /mnt/usb”命令建立一个挂载U盘用的目录。之后使用如下命令挂载FAT格式的U盘： 
+　　 
+　　# mount -t msdos /dev/sda1 /mnt/usb 
+　　 
+　　使用如下命令挂载FAT32格式的U盘： 
+　　 
+　　# mount -t vfat /dev/sda1 /mnt/usb 
+　　 
+　　4.挂载外挂硬盘分区 
+　　 
+　　挂载外挂硬盘分区（FAT32格式）同样需要先用“fdisk -1”查看外挂的硬盘分区设备号，假设为/dev/hda1。建立/mnt/vfat挂载目录后，使用如下命令进行挂载： 
+　　 
+　　# mount -t vfat /dev/hda1 /mnt/vfat 
+　　 
+　　注意，默认情况下Linux只允许root用户执行mount命令。如果想让一般用户也能挂载，并且希望在系统启动时自动挂载光盘或软盘，需要修改/etc/fstab配置文件，加入以下内容： 
+　　 
+　　LABEL=/ /　ext3　　　defaults　　11 
+　　/dev/cdrom/mnt/cdrom iSo9660 auto,owner,kudzu,ro,user 00 
+　　/dev/fdo　/mnt/floppy auto　auto,owner,kudzu,ro,user 00 
+　　 
+　　其中，“user”表示将mount命令赋予一般用户使用。 
+　　 
+　　/etc/fstab文件在Linux的帮助手册中讲得很详细，读者不妨看一看。 
+转自：http://linux.chinaitlab.com/command/36729.html

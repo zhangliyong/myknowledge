@@ -1,0 +1,49 @@
+﻿++ 设置ntfs挂载 以ubuntu下为例
+
+NFS 最初是由Sun Microsystems公司于1984年开发的。
+
+NFS可以使文件在网络中共享，但是NFS协议并不提供文件传输的功能，它借助RPC协议实现数据的传输。
+
+下面说讲讲NFS服务的安装运行
+
+在NFS服务器端（也就是要共享的文件所在机器）安装NFS服务
+
+sudo apt-get install nfs-kernel-server
+
+安装完后就要设置共享目录
+
+打开文件 /etc/exports
+
+sudo /etc/exports
+
+exports文件中每一行表示一个导出目录，格式如下：
+
+目录路径  机器1（选项1,选项2,、、、、、） 机器2（选项1,选项2,、、、、、） 。。。。。
+
+机器表示允许访问共享目录的客户机，可以是机器名，域名或IP地址。选项之间用“,"分隔，不能有空格。
+
+选项主要有以下几种（下面只列出两种常用的，如果想了解其它的自己查资料）
+
+ro：客户机对该目录只有读权限，这是默认选项。
+
+rw：客户机对该共享目录有读写权限。
+
+例如：
+
+/home/abc 192.168.1.0/24(ro) 192.168.34.55(rw)  *(ro)      //*表示所有机器  /24表示一个网段
+
+/etc/exports修改完后，重启NFS服务(1)，或者运行exportfs命令(2)使修改生效。
+
+1重启 sudo service nfs-kernel-server restart
+
+2运行 exportfs -r -v
+
+在客户端机器要安装 sudo apt-get install nfs-client
+
+运行 showmount -e 10.10.1.129 可查看10.10.1.129机器上的共享目录
+
+将共享目录mount到客户端上
+
+sudo mount -t nfs 10.10.1.129:/home/abc /mnt
+
+或者在文件/etc/fstab中进行设置，使开机时自动挂载，关于/etc/fstab就不进行说明了，想了解的可以自已Google一下。

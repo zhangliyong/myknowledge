@@ -1,0 +1,25 @@
+﻿++ install requirments
+
+Ubuntu 10.04
+DB2 only supports the Long Term Support (LTS) versions of Ubuntu. The information contained in this page outlines Ubuntu 10.04 specific information on DB2 9.7.
+Common requirements
+DB2 9.7 requires Ubuntu 10.04 release.
+Before installing DB2, please use the "apt-get" command to install the following packages: libaio1, ksh, libstdc++6-4.4-dev and libstdc++6-4.4-pic.
+
+ Validated and Recommended Levels
+
+ Platform Requirements
+
+Validated and Recommended Levels
+The validated service update levels for this distribution are listed below. Depending on availability of critical fixes, the minimum and recommended levels may vary.
+DB2 9.7	 Distribution Level	 Comments
+Validated levels	 Ubuntu 10.04	 
+Minimum levels *	 Ubuntu 10.04	 
+Recommended levels **	 Ubuntu 10.04	 
+* Minimum level - contains fixes that are critical to the stability of DB2.
+** Recommended level - contains fixes that are crucial to performance and/or security of DB2
+Platform Requirements
+The base kernel level and the base library levels listed here are the default levels provided by the Linux Environment in question. Kernel and library levels that differ from this due to update packages provided by the Linux distributor are also supported.
+Platform	 Base Kernel Level	 Libraries	 Comments
+x86	 2.6.24-19	 glibc-2.7.so	 
+x64 AMD64/EM64T	 2.6.24-19	 glibc-2.7.so	 

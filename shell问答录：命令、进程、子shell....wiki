@@ -1,0 +1,117 @@
+前些天在CU上讨论一个统计正在执行的脚本数量的问题过程中，发现自己对于shell如何执行命令方面了解还是甚少，惭愧惭愧...期间得到waker兄的指点，在此表示感谢！他的说法除了个别地方不太准确外，基本上是正确的。这些天抽时间找了些资料研究了一下，又学到了不少！这里把我的一点心得以问答的形式贴出来，供大家参考。小弟才疏学浅，错误的地方一定很多，欢迎大家拍砖、指正！
+
+Q1: shell如何执行“简单”命令？
+A: 这里的简单命令和bash参考手册里的含义相同，形式上一般是：命令的名称加上它的参数。有三种不同的简单命令：
+1.内置命令(builtin)
+是shell解释程序内建的，有shell直接执行，不需要派生新的进程。有一些内部命令可以用来改变当前的shell环境，如:
+cd /path
+var=value
+read var
+export var
+...
+
+2.外部命令("external command" or "disk command")
+二进制可执行文件，需要由磁盘装入内存执行。会派生新的进程，shell解释程序会调用fork自身的一个拷贝，然后用exec系列函数来执行外部命令，然后外部命令就取代了先前fork的子shell。
+
+3.shell脚本(script)
+shell解释程序会fork+exec执行这个脚本命令，在exec调用中内核会检查脚本的第一行(如:#!/bin/sh)，找到用来执行脚本的解释程序，然后装入这个解释程序，由它解释执行脚本程序。解释程序可能有很多种，各种shell(Bourne shell，Korn shell cshell，rc及其变体ash，dash，bash，zshell，pdksh，tcsh，es...)，awk，tcl/tk，expect，perl，python，等等。在此解释程序显然是当前shell的子进程。如果这个解释程序与当前使用的shell是同一种shell，比如都是bash，那么它就是当前shell的子shell，脚本中的命令都是在子shell环境中执行的，不会影响当前shell的环境。
+
+
+Q2: shell脚本是否作为单独的一个进程执行？
+A: 不是，shell脚本本身不能作为一个进程。如上面讲的，shell脚本由一个shell解释程序来解释、运行其中的命令。这个shell解释程序是单独的一个进程，脚本中的外部命令也都作为独立进程依次被运行。这也就是为什么ps不能找到正在运行的脚本的名字的原因了。作为一个替代方案，你可以这样调用脚本：
+sh script-name
+这时shell解释程序“sh”作为一个外部命令被显式地调用，而script-name作为该命令的命令行参数可以被我们ps到。
+另外，如果你的系统上有pidof命令可用，它倒是可以找出shell脚本进程(实际上应该是执行shell脚本的子shell进程)的进程ID:
+pidof -x script-name
+
+
+Q3: shell何时在子shell中执行命令？
+A: 在此我们主要讨论Bourne shell及其兼容shell。在许多情况下shell会在子shell中执行命令：
+1.(...)结构
+小括号内的命令会在一个子shell环境中执行，命令执行的结果不会影响当前的shell环境。需要注意是此时变量$$会显示当前shell的进程id，而不是子shell的进程id。
+参考：
+{...;}结构中的命令在当前shell中执行，(内部)命令执行的结果会影响当前的shell环境。
+
+2.后台执行或异步执行
+command&
+命令由一个子shell在后台执行，当前shell立即取得控制等候用户输入。后台命令和当前shell的执行是并行的，但没有互相的依赖、等待关系，所以是异步的并行。
+
+3.命令替换
+`command`(Bourn shell及兼容shell/csh)
+$(command)(在ksh/bash/zsh中可用)
+将command命令执行的标准输出代换到当前的命令行。command在子shell环境中执行，结果不会影响当前的shell环境。
+
+4.管道(不同的shell处理不同)
+cmd1|cmd2
+cmd1和cmd2并行执行，并且相互有依赖关系，cmd2的标准输入来自cmd1的标准输出，二者是“同步”的。
+对管道的处理不同的shell实现的方式不同。
+在linux环境下大多数shell（bash/pdksh/ash/dash等，除了zshell例外）都将管道中所有的命令在子shell环境中执行，命令执行的结果不会影响当前的shell环境。
+Korn shell的较新的版本(ksh93以后)比较特殊，管道最后一级的命令是在当前shell执行的。这是一个feature而非BUG，在POSIX标准中也是允许的。这样就使下面的命令结构成为可能：
+command|read var
+由于read var(read是一个内部命令)在当前shell中执行，var的值在当前shell就是可用的。
+反之bash/pdksh/ash/dash中read var在子shell环境中执行，var读到的值无法传递到当前shell，所以变量var无法取得期望的值。类似这样的问题在各种论坛和news group中经常被问到。个人认为command|read var的结构很清晰，并且合乎逻辑，所以我认为Korn shell的这个feature很不错。可惜不是所有的shell都是这样实现的。:(如开源的pdksh就是在子shell执行管道的每一级命令。
+Korn shell对管道的处理还有一个特殊的地方，就是管道如果在后台执行的话，管道前面的命令会由最后一级的命令派生，而不是由当前shell派生出来。据说Bourne shell也有这个特点(标准的Bourne shell没有测试环境，感兴趣的朋友有条件的可以自行验证)。但是他们的开源模仿者，pdksh和ash却不是这样处理。
+最特殊的是zshell，比较新的zshell实现（好像至少3.0.5以上）会在当前shell中执行管道中的每一级命令，不仅仅是最后一条。每一条命令都由当前shell派生，在后台执行时也是一样。可见在子sehll中执行管道命令并不是不得已的做法，大概只是因为实现上比较方便或者这样的处理已经成为unix的传统之一了吧。;-)
+让我们总结一下，不同的shell对管道命令的处理可能不同。有的shell中command|read var这样的结构是ok的，但我们的代码出于兼容性的缘故不能依赖这一点，最好能避免类似的代码。
+
+5.进程替换（仅bash/zsh中，非POSIX兼容）
+<(...)
+>(...)
+与管道有点类似，例子：cmd1 <(cmd2) >(cmd3)， cmd1， cmd2， cmd3的执行是同步并行的。
+<(command)形式可以用在任何命令行中需要填写输入文件名的地方，command的标准输出会被该命令当作一个输入文件读入。
+>(command)形式可以用在任何命令行中需要填写输出文件的地方，该命令的输出会被command作为标准输入读入。
+两种形式中的command都在子shell环境中执行，结果不会影响当前的shell环境。
+
+6.if或while命令块的输入输出重定向
+在SVR4.2的Bourne shell中对此情况会fork一个子shell执行if块和while块中的命令；在linux下似乎其它的shell中都不这样处理。
+
+7.协进程(ksh)
+只有Korn shell和pdksh有协进程的机制(其它shell中可以用命名管道来模拟)。类似于普通的后台命令，协进程在后台同步运行，所以必须在子shell中运行。协进程与后台命令不同的是它要和前台进程(使用read -p和print -p)进行交互，而后者一般只是简单地异步运行。
+
+
+Q4: 既然在当前shell中执行命令也会派生子shell，那么它与在子shell中执行命令又有什么区别呢？
+A: 这种说法不准确。
+在当前shell中执行内部命令不会派生子shell，因此有些内部命令才能够改变当前的shell执行环境。
+在当前shell中执行外部命令或脚本时会派生子shell，所以这时命令的执行不会影响当前 的shell环境。注意：子shell中执行的内部命令只会改变子shell的执行环境，而不会改变当前shell(父shell)的环境。
+
+
+Q5: 怎样把子shell中的变量传回父shell?
+A: 例如(echo "$a") | read b不能工作，如何找到一个替代方案？下面给出一些可能的方案：
+1.使用临时文件
+...
+#in subshell
+a=100
+echo "$a">tmpfile
+...
+#in parent
+read b<tmpfile
+
+2.使用命名管道
+mkfifo pipef
+(...
+echo "$a" > pipef
+...)
+read b <pipef
+
+3.使用coprocess(ksh)
+（ echo "$a" |&）
+read -p b
+
+4.使用命令替换
+b=`echo "$a"`
+
+5.使用eval命令
+eval `echo "b=$a"`
+
+6.使用here document
+read b <<END
+`echo "$a"`
+END
+
+7.使用here string(bash/pdksh)
+read b <<<`echo "$a"`
+
+8.不用子shell，用.命令或source命令执行脚本。
+即在当前shell环境下执行脚本，没有子shell，也就没有了子shell的烦恼。:)
+
+解决的方法还不止于此，其它的进程间通信手段应该也能使用，这有待于大家一起发掘了。^_^

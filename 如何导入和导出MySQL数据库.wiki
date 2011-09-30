@@ -1,0 +1,63 @@
+﻿++ 如何导入和导出My SQL数据库
+
+详细讲解如何导入和导出MySQL数据库
+1. 简介
+MySQL数据库的导入，有两种方法：
+(1) 先导出数据库SQL脚本，再导入；
+(2) 直接拷贝数据库目录和文件。
+在不同操作系统或MySQL版本情况下，直接拷贝文件的方法可能会有不兼容的情况发生。
+所以一般推荐用SQL脚本形式导入。下面分别介绍两种方法。
+2. 方法一 SQL脚本形式
+操作步骤如下：
+2.1. 导出SQL脚本
+在原数据库服务器上，可以用phpMyAdmin工具，或者mysqldump(mysqldump命令位于mysql/bin/目录中)命令行，导出SQL脚本。
+2.1.1 用phpMyAdmin工具
+导出选项中，选择导出“结构”和“数据”，不要添加“Drop DATABASE”和“Drop TABLE”选项。
+选中“另存为文件”选项，如果数据比较多，可以选中“gzipped”选项。
+将导出的SQL文件保存下来。
+2.1.2 用mysqldump命令行
+命令格式
+mysqldump -u用户名 -p 数据库名 > 数据库名.sql
+范例：
+mysqldump -uroot -p abc > abc.sql
+（导出数据库abc到abc.sql文件）
+提示输入密码时，输入该数据库用户名的密码。
+2.2. 创建空的数据库
+通过主控界面/控制面板，创建一个数据库。假设数据库名为abc，数据库全权用户为abc_f。
+2.3. 将SQL脚本导入执行
+同样是两种方法，一种用phpMyAdmin（mysql数据库管理）工具，或者mysql命令行。
+2.3.1 用phpMyAdmin工具
+从控制面板，选择创建的空数据库，点“管理”，进入管理工具页面。
+在"SQL语句大全"菜单中，浏览选择刚才导出的SQL文件，点击“执行”以上载并执行。
+注意：phpMyAdmin对上载的文件大小有限制，php本身对上载文件大小也有限制，如果原始sql文件
+比较大，可以先用gzip对它进行压缩，对于sql文件这样的文本文件，可获得1:5或更高的压缩率。
+gzip使用方法：
+# gzip xxxxx.sql
+得到
+xxxxx.sql.gz文件。
+2.3.2 用mysql命令行
+命令格式
+mysql -u用户名 -p 数据库名 < 数据库名.sql
+范例：
+mysql -uabc_f -p abc < abc.sql
+（导入数据库abc从abc.sql文件）
+提示输入密码时，输入该数据库用户名的密码。
+3. 方法二 直接拷贝
+如果数据库比较大，可以考虑用直接拷贝的方法，但不同版本和操作系统之间可能不兼容，要慎用。
+3.1 准备原始文件
+用tar打包为一个文件
+3.2 创建空数据库
+3.3 解压
+在临时目录中解压，如：
+cd /tmp
+tar zxf mydb.tar.gz
+3.4 拷贝
+将解压后的数据库文件拷贝到相关目录
+cd mydb/
+cp * /var/lib/mysql/mydb/
+对于FreeBSD:
+cp * /var/db/mysql/mydb/
+3.5 权限设置
+将拷贝过去的文件的属主改为mysql:mysql，权限改为660
+chown mysql:mysql /var/lib/mysql/mydb/*
+chmod 660 /var/lib/mysql/mydb/*

@@ -1,0 +1,94 @@
+﻿++ ANT联机 远程 部署
+
+使用SCP来部署 
+从Ant 1.6开始的有效部署方式是SCP，它把一个文件或者FileSet从一个运行SSH (译者注：指SSH daemon。Daemon- [计] Internet中用于邮件收发的后台程序) 的远程主机上拷贝 (或者拷贝到远程主机上)。这种方式是一种可选的方式，而且你需要把jsch.jar 放到Ant的lib目录下来使用 (你可以从以下地址得到jsch.jar： http://www.jcraft.com/jsch/index.html)。 
+用这种方式部署起来很方便。例如,下面是一个怎样把一个单独的文件部署到一台远程主机的例子 (任何的主机，除非你明确地设置trust的属性为yes或者true，否则它一定要在你的已知主机 (knownhosts) 列表中): 
+你可以明确的使用password属性来设置密码: 
+如何拷贝一个远程文件到本地机器: 
+如何利用fileset来拷贝一组文件: 
+
+例8-3给出了一个完整的利用scp方式来部署的构造文件。(它使用了远程主机的IP地址来代替了命名远程服务器。) 
+例 8-3. 利用scp (ch08/scp/build.xml) 
+            ${message} 
+这是刚才的构造文件在Windows机器上运行时候的样子: 
+%ant 
+Buildfile: build.xml 
+init: 
+[mkdir] Created dir: C:\ant\ch08\scp\bin 
+compile: 
+[javac] Compiling 1 source file to C:\ant\ch08\scp\bin 
+compress: 
+[jar] Building jar: C:\ant\ch08\scp\bin\Project.jar 
+deploy: 
+[scp] Connecting to 000.000.000.000 
+[scp] Sending: Project.jar : 664 
+[scp] File transfer time: 1.32 Average Rate: 9502.27 B/s 
+[scp] done. 
+main: 
+[echo] 
+[echo] Deploying the .jar file. 
+[echo] 
+BUILD SUCCESSFUL 
+Total time: 12 seconds 
+
+小技巧: 正如在第4章的时候说过的一样，在一个构造文件中对密码和/或用户名的显式编码 (hardcoding-也有人称硬编码) 是一种不好的选择。使用属性会是一种较好的办法，象下面这样: 
+
+象下面这样把用户名和密码传递给Ant: 
+ant -Dusername=steven -Dpassword=opensesame 
+
+在文件被scp 方式所拷贝的时候，它的Unix文件许可并没有被保留(实际上它们得到的是UMASK许可)。如果你想保留Unix许可,用Unix下的scp 命令来代替(例如, ). 
+表 8-3. scp任务属性 
+[img]http://image.360doc.com/DownloadImg/5874/69103_1.gif&quot; alt=&quot;[/img] 
+
+你可以使用fileset 元素来选择一组文件来拷贝;如果你使用了fileset,你就必须为todir属性指定一个值. (fileset 元素只在你拷贝本地文件到远程主机时可用) 
+
+部署到Tomcat 
+作为servlet和JSP的参考Web服务器，Tomcat (可从http://jakarta.apache.org/tomcat/得到)，自从它包含了自定义的Ant部署方式，就变得更吸引Ant开发者。 
+从你的Tomcat5复制文件server/lib/catalina-ant.jar到Ant的lib目录来使用那些任务。 
+
+Tomcat部署任务包括部署， 重新加载，反部署 (卸载); 要使用他们，增加这些taskdef元素(在第11章讨论了) 到你的建造文件: 
+<taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask"/> 
+<taskdef name="reload" classname="org.apache.catalina.ant.ReloadTask"/> 
+<taskdef name="undeploy" classname="org.apache.catalina.ant.UndeployTask"/> 
+
+想使用这些任务， 你需要Tomcat管理员权限; 象下面这样编辑conf/tomcat-users.xml为一个用户名增加管理员权限(这里是admin)和口令:
+
+<?xml version='1.0' encoding='utf-8'?> 
+<tomcat-users> 
+  <role rolename="manager"/> 
+  <role rolename="role1"/> 
+  <role rolename="tomcat"/> 
+  <user username="admin" password="password" roles="manager"/> 
+  <user username="role1" password="tomcat" roles="role1"/> 
+  <user username="tomcat" password="tomcat" roles="tomcat"/> 
+  <user username="both" password="tomcat" 
+roles="tomcat,role1"/> 
+</tomcat-users> 
+你能像下面这样使用部署任务在Ant中部署一个Web应用程序到Tomcat: 
+
+<target name="install"> 
+    <deploy url="${manager.url}" 
+        username="${manager.username}" 
+        password="${manager.password}"         path="${app.path}" 
+        localWar="file://${build}"/> 
+</target> 
+
+在这里manager.url是Tomcat管理器的servlet的URL。 
+这servlet的缺省值名字是“manager”，因此看起来象http://localhost:8080/manager。 
+app.path属性表示的是这个应用程序应该被部署的上下文路径(通常是“/”加上你想要在URL中联机访问的应用程序的的名字)。 
+build属性表示的是在你要在什么位置来建立Web应用程序，比喻说是Tomcat的webapps目录。 
+如果你已经安装一个应用程序并且想要Tomcat认出你最新的Java类，使用reload(重新加载任务)代替: 
+<target name="reload"> 
+    <reload url="${manager.url}" 
+         username="${manager.username}" 
+password="${manager.password}" 
+         path="${app.path}"/> 
+</target> 
+
+删掉一个Web应用程序， 使用undeploy任务: 
+<target name="remove"> 
+    <undeploy url="${manager.url}" 
+        username="${manager.username}" 
+        password="${manager.password}" 
+        path="${app.path}"/> 
+</target>

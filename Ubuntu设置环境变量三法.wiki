@@ -1,0 +1,26 @@
+﻿++ Ubuntu设置环境变量三法
+
+如想将一个路径加入到$PATH中，可以像下面这样做： 
+1. 控制台中： 
+$ PATH="$PATH:/my_new_path" 
+
+2. 修改profile文件： 
+
+$ vi /etc/profile 
+
+在里面加入: 
+export PATH="$PATH:/my_new_path" 
+
+3. 修改.bashrc文件： 
+
+$ vi /root/.bashrc 
+
+在里面加入： 
+
+export PATH="$PATH:/my_new_path" 
+
+后两种方法一般需要重新注销系统才能生效，最后可以通过echo命令测试一下： 
+
+$ echo $PATH 
+
+输出已经是新路径了。

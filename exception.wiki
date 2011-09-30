@@ -1,0 +1,38 @@
+﻿++ exception
+
+from the book effective java page 241
+
+Use exceptions only for exceptional conditions
+Exceptions are to be used only for exceptional conditions; they should never be used for ordinary control flow.
+eg1:
+    try {
+        int i = 0;
+        while(true)
+            range[i++].climb();
+    } catch( ArrayIndexOutOfBoundsException e) {
+    }
+eg2:
+    for (Mountain m : range)
+        m.climb();
+
+eg1 is horrible, it use exception fro control flow, and eg2 is right, exception is not efficient, the morderm JVM don't optimize them, standar idioms like looping through an array doesn't necessarily result in redundant checks, Modern JVM implementations optimize them away.
+
+A well-designed API must not force its clients to use exceptions for ordinary control flow.
+Like Iterator interface has the state-dependent method next and the corresponding state-testing method hsNext, this enables the standard idiom for iterating over a collection with a traditional for loop.
+eg:
+    for (Interator<Foo> i = collection.iterator(); i.hasNext(); ) {
+        Foo foo = i.next();
+        ........
+    }
+don't use this one
+try {
+    Iterator<Foo> i = collection.iterator();
+    while(true) {
+        Foo foo = i.next();
+        .....
+        }
+    } catch (NoSuchElementException e) {
+    }
+    
+an alternative to providing a separate state-testing method is to have the statedependent method return a distinguished value such as null if it is invoked with the object in an inappropriate state.
+but a state-testing method is mildly preferable to a distinguished return value, if state-testing is very inefficient you can use return value.

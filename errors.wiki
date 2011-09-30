@@ -1,0 +1,3 @@
+﻿++ errors
+
+[No start database manager command was issued]

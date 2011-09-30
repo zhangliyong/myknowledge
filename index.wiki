@@ -1,16 +1,50 @@
  = My knowledge =
 
+ 	* [[job]]
+ 	* 申请： http://yahoo.51campus.com.cn/CampusApply/Login.aspx
+    * http://vip.yingjiesheng.com/2012/ebay/job.htm ms ibm marvell baidu
+    *  http://xyzp.snda.com/index.html taobao
  	* [[TODOList]]
+ 	    * gdb
+ 	    * 把dblp数据分开、运行dblp数据，再把结果汇总一下。
  		* 看一下kindle的源代码,修改其中的一个js文件,使能打开_blank的链接. url:[http://hi.baidu.com/canbefound/blog/item/40b054d2c6ad00c5572c84b7.html]
+ 		* Fudan 搜索引擎部分：
+            * 研究一下nutch的代码
+            * 修改一下对fudan bbs进行抓取并解析
+            * 修改对使得可以对部分网站进行定制抓取，比如可以某个网站进行更深度的抓取
+            * 修改使的可以更新index，这样可以对某些网站进行更频繁的抓取
+        * 看一下dogear源码：https://github.com/jiedan/kindlereader
+        * 看一下instapaper api: http://www.instapaper.com/api/full
 
+	* [[C]]
+	* [[Android]]
+	* [[JAVA]]
+	* [[Python]]
 	* LibIP -- The ip address in library.
 		* 10.139.20.42 23D
+	* MongoDb
+    *
+	* VimCollection -- some tips of vim
 	* VimPlugins -- the good plugins I used
 	* [[Collections]] -- some good resource.
 	* LinuxNotes -- some notes about linux.
-	* [[名言]]
 	* [[如何加入一个开源项目]]
 	* [[python 命令规则]]
 	* PythonComments -- python comments.
 	* MyGitHub
 	* UbuntuColor -- ubuntu 下配置颜色保护眼睛
+	* 
+    * GoogleAppengine -- google appengine 的一些问题
+	* 
+    * [[提高Nutch局域网抓取的速度]]
+    * 
+    * [[英语学习]]
+    * [[新东方推荐--25部学英语的好电影]]
+    * 
+    * MyWiki
+    * 
+    * [[Write Something. Write Anything]]
+    * 
+    * [[末世拍案惊奇]]
+    * 
+	* [[杂文]]

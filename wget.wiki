@@ -1,0 +1,123 @@
+﻿++ wget
+
+wget 使用技巧 
+
+2007-10-14 Toy Posted in TipsRSSTrackback 
+
+wget 是一个命令行的下载工具。对于我们这些 Linux 用户来说，几乎每天都在使用它。下面为大家介绍几个有用的 wget 小技巧，可以让你更加高效而灵活的使用 wget。 
+
+    * $ wget -r -np -nd http://example.com/packages/ 
+
+这条命令可以下载 http://example.com 网站上 packages 目录中的所有文件。其中，-np 的作用是不遍历父目录，-nd 表示不在本机重新创建目录结构。 
+
+    * $ wget -r -np -nd --accept=iso http://example.com/centos-5/i386/ 
+
+与上一条命令相似，但多加了一个 --accept=iso 选项，这指示 wget 仅下载 i386 目录中所有扩展名为 iso 的文件。你也可以指定多个扩展名，只需用逗号分隔即可。 
+
+    * $ wget -i filename.txt 
+
+此命令常用于批量下载的情形，把所有需要下载文件的地址放到 filename.txt 中，然后 wget 就会自动为你下载所有文件了。 
+
+    * $ wget -c http://example.com/really-big-file.iso 
+
+这里所指定的 -c 选项的作用为断点续传。 
+
+    * $ wget -m -k (-H) http://www.example.com/ 
+
+该命令可用来镜像一个网站，wget 将对链接进行转换。如果网站中的图像是放在另外的站点，那么可以使用 -H 选项。 
+
+5、密码和认证。 
+wget只能处理利用用户名/密码方式限制访问的网站，可以利用两个参数： 
+--http-user=USER设置HTTP用户 
+--http-passwd=PASS设置HTTP密码 
+对于需要证书做认证的网站，就只能利用其他下载工具了，例如curl。 
+
+* 使用代理下载 
+wget -Y on -p -k https://sourceforge.net/projects/wvware/ 
+
+代理可以在环境变量或wgetrc文件中设定 
+
+# 在环境变量中设定代理 
+export PROXY=http://211.90.168.94:8080/ 
+# 在~/.wgetrc中设定代理 
+http_proxy = http://proxy.yoyodyne.com:18023/ 
+ftp_proxy = http://proxy.yoyodyne.com:18023/ 
+
+
+* 下载 
+
+--bind-address=ADDRESS 指定本地使用地址(主机名或IP，当本地有多个IP或名字时使用) 
+-t, --tries=NUMBER 设定最大尝试链接次数(0 表示无限制). 
+-O --output-document=FILE 把文档写到FILE文件中 
+-nc, --no-clobber 不要覆盖存在的文件或使用.#前缀 
+-c, --continue 接着下载没下载完的文件 
+--progress=TYPE 设定进程条标记 
+-N, --timestamping 不要重新下载文件除非比本地文件新 
+-S, --server-response 打印服务器的回应 
+--spider 不下载任何东西 
+-T, --timeout=SECONDS 设定响应超时的秒数 
+-w, --wait=SECONDS 两次尝试之间间隔SECONDS秒 
+--waitretry=SECONDS 在重新链接之间等待1...SECONDS秒 
+--random-wait 在下载之间等待0...2*WAIT秒 
+-Y, --proxy=on/off 打开或关闭代理 
+-Q, --quota=NUMBER 设置下载的容量限制 
+--limit-rate=RATE 限定下载输率 
+
+* 目录 
+
+-nd --no-directories 不创建目录 
+-x, --force-directories 强制创建目录 
+-nH, --no-host-directories 不创建主机目录 
+-P, --directory-prefix=PREFIX 将文件保存到目录 PREFIX/... 
+--cut-dirs=NUMBER 忽略 NUMBER层远程目录 
+
+* HTTP 选项 
+
+--http-user=USER 设定HTTP用户名为 USER. 
+--http-passwd=PASS 设定http密码为 PASS. 
+-C, --cache=on/off 允许/不允许服务器端的数据缓存 (一般情况下允许). 
+-E, --html-extension 将所有text/html文档以.html扩展名保存 
+--ignore-length 忽略 `Content-Length'头域 
+--header=STRING 在headers中插入字符串 STRING 
+--proxy-user=USER 设定代理的用户名为 USER 
+--proxy-passwd=PASS 设定代理的密码为 PASS 
+--referer=URL 在HTTP请求中包含 `Referer: URL'头 
+-s, --save-headers 保存HTTP头到文件 
+-U, --user-agent=AGENT 设定代理的名称为 AGENT而不是 Wget/VERSION. 
+--no-http-keep-alive 关闭 HTTP活动链接 (永远链接). 
+--cookies=off 不使用 cookies. 
+--load-cookies=FILE 在开始会话前从文件 FILE中加载cookie 
+--save-cookies=FILE 在会话结束后将 cookies保存到 FILE文件中 
+
+* FTP 选项 
+
+-nr, --dont-remove-listing 不移走 `.listing'文件 
+-g, --glob=on/off 打开或关闭文件名的 globbing机制 
+--passive-ftp 使用被动传输模式 (缺省值). 
+--active-ftp 使用主动传输模式 
+--retr-symlinks 在递归的时候，将链接指向文件(而不是目录) 
+
+* 递归下载 
+
+-r, --recursive 递归下载－－慎用! 
+-l, --level=NUMBER 最大递归深度 (inf 或 0 代表无穷). 
+--delete-after 在现在完毕后局部删除文件 
+-k, --convert-links 转换非相对链接为相对链接 
+-K, --backup-converted 在转换文件X之前，将之备份为 X.orig 
+-m, --mirror 等价于 -r -N -l inf -nr. 
+-p, --page-requisites 下载显示HTML文件的所有图片 
+
+* 递归下载中的包含和不包含(accept/reject) 
+
+-A, --accept=LIST 分号分隔的被接受扩展名的列表 
+-R, --reject=LIST 分号分隔的不被接受的扩展名的列表 
+-D, --domains=LIST 分号分隔的被接受域的列表 
+--exclude-domains=LIST 分号分隔的不被接受的域的列表 
+--follow-ftp 跟踪HTML文档中的FTP链接 
+--follow-tags=LIST 分号分隔的被跟踪的HTML标签的列表 
+-G, --ignore-tags=LIST 分号分隔的被忽略的HTML标签的列表 
+-H, --span-hosts 当递归时转到外部主机 
+-L, --relative 仅仅跟踪相对链接 
+-I, --include-directories=LIST 允许目录的列表 
+-X, --exclude-directories=LIST 不被包含目录的列表 
+-np, --no-parent 不要追溯到父目录

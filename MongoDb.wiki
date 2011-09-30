@@ -1,0 +1,29 @@
+MongoDB repair on Ubuntu
+
+转自：http://www.synchrosinteractive.com/blog/1-software/47-mongodb-repair-on-ubuntu
+This evening I tried to connect to my MongoDB instance using the command line mongo tool and got the following error message: Error: couldn't connect to server 127.0.0.1} (anon):1137. It turns out that the server wasn't running due to an improper shutdown at some point in the past. Here's what you need to do to fix it.
+
+Note: my instructions are specific to Ubuntu 10.04 (& probably other versions of Ubuntu).
+Why Won't MongoDB Start?
+
+One of the lame things about MongoDB is that it doesn't handle a crash on it's own very well. If the database crashes or otherwise doesn't shut down properly, then the next time you try to start it, you'll get a nice error saying that there is an old lockfile and that you probably need to remove it and run mongod --repair. However, on my laptop running Ubuntu 10.04, I ran into a few confusing things that I'd like to share, hopefully to save someone else out there some time.
+Symptoms
+
+    Try to connect (type mongo on the command line). You should get a connect failed error.
+    Verify that MongoDB is not running. Run sudo status mongodb. It should report mongodb stop/waiting.
+    Verify that you are unable to start MongoDB. Run sudo start mongodb. It will report mongodb start/running, process XXXX no matter what. But if you run sudo status mongodb again, you'll get stop/waiting.
+    Check your logs to see that you in fact have the same problem as me. Your logs should be at /var/log/mongodb/mongodb.log. You should see an error like this:
+
+    ************** 
+    old lock file: /var/lib/mongodb/mongod.lock.  probably means unclean shutdown
+    recommend removing file and running --repair
+    see: http://dochub.mongodb.org/core/repair for more information
+    *************
+
+Instructions To Get MongoDB Up Again
+
+    Manually remove the lockfile: sudo rm /var/lib/mongodb/mongod.lock
+    Run the repair script: sudo -u mongodb mongod -f /etc/mongodb.conf --repair.
+        You must run this command as the mongodb user. If you run it as root, then root will own files in /var/lib/mongodb/ that are necessary to run the mongodb daemon and therefore when the daemon trys to run later as the mongodb user, it won't have permissions to start. In that case you'll get this error: Unable to create / open lock file for lockfilepath: /var/lib/mongodb/mongod.lock errno:13 Permission denied, terminating.
+        On Ubuntu, you must specify the configuration file /etc/mongodb.conf using the -f flag. Otherwise it will look for the data files in the wrong place and you will see the following error: dbpath (/data/db/) does not exist, terminating.
+    Now you can start your MongoDB server with sudo start mongodb and verify it is running with sudo status mongodb and by trying to connect to it with mongo test.

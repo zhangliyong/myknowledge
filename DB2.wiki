@@ -1,0 +1,36 @@
+﻿++ DB2
+
+[install requirments]
+[errors]
+
+dbadmin
+username: dasusr1
+groupname: dasadm1
+password: zly
+
+db2 instance owner
+username: db2inst1
+groupname: db2iadm1
+password: zly
+
+db2 fenced user
+username: db2fenc1
+groupname: db2fadm1
+password: zly
+
+db2cc cannot open
+run:
+xhost +localhost
+export DISPLAY=:0.0
+
+Required steps:
+
+In order to start using DB2 you need to logon using a valid user ID such as the DB2 instance owner's ID "db2inst1".
+
+You can connect to the DB2 instance "db2inst1" using the port number "50000". Record it for future reference.
+
+Optional steps:
+
+To validate your installation files, instance, and database functionality, run the Validation Tool, /opt/ibm/db2/V9.7/bin/db2val. For more information, see "db2val" in the DB2 Information Center.
+
+Open First Steps by running "db2fs" using a valid user ID such as the DB2 instance owner's ID. You will need to have DISPLAY set and a supported web browser in the path of this user ID.

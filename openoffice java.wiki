@@ -1,0 +1,183 @@
+﻿++ openoffice java
+
+需要安装SDK,
+要用到四个JAR文件：juh.jar、jurt.jar、ridl.jar和unoil.jar。
+都在unoil.jar在basis/program/classes文件夹下面
+其它的在ure/share/java文件夹下面
+
+3.1 使用引导程序
+public Object simpleBootstrap(String pathToExecutable) throws Exception 
+{
+    //Get the office component context:
+    XComponentContext xContext = Bootstrap.bootstrap();
+    //Get the office service manager:
+    XMultiComponentFactory xServiceManager = xContext.getServiceManager();
+    //Create the desktop, which is the root frame of the
+    //hierarchy of frames that contain viewable components:
+    Object desktop = xServiceManager.createInstanceWithContext
+        ("com.sun.star.frame.Desktop", xContext );
+    return desktop;
+}
+   另一中方法就是使用远程连接。在远程连接中，服务器名称和端口号作为参数传递给远程连接方法，然后这个方法启动OpenOffice.org并返回Desktop对象，这个对象是利用OpenOffice.org工作的起点。而且在远程连接的情况下，您可以让用户选择服务器和端口，或者您可以在代码中使用系统设置来提供服务器和端口，这都看您的选择。 
+--------------------------------------------------------------------------------
+
+3.2  电子表格文档的建立和加载
+   上一节描述的方法帮助我们从服务管理器中获取了com.sun.star.frame.Desktop服务。Desktop可以根据给定的URL来加载新的或者已经存在的组件。为了提供这样的服务，Desktop实现了com.sun.star.frame.XcomponentLoader接口，这个接口只有一个方法根据给定的URL加载和实例化对应的组件。要构建一个新的电子表格文档组件，可以使用“private:factory/scalc”这样的URL。关于更详细的信息请参考OpenOffice.org开发指南《第8章  电子表格》中的8.2.1 “电子表格文档的建立和加载”。
+
+public XComponent getSpreadsheetComponent(Object desktop, String templateURL)
+    throws Exception 
+{
+    XComponentLoader xComponentLoader =
+        (XComponentLoader)UnoRuntime.queryInterface(XComponentLoader.class, desktop);
+    PropertyValue[] pPropValues;
+    pPropValues = new PropertyValue[0];
+    return xComponentLoader.loadComponentFromURL(templateURL, "_blank",0, pPropValues);
+}
+   下面这个方法将由用户界面所调用，在调用之前用户需要将必要的参数传递给上面代码中描述的方法： 
+
+XComponent xSpreadsheetComponent =
+    oooHelper.getSpreadsheetComponent(desktop, "private:factory/scalc");
+
+   接着，我们需要获取电子表格文档对象： 
+
+public XSpreadsheetDocument getXSpreadsheetDocument(XComponent xSpreadsheetComponent) 
+    throws Exception
+{
+    return(XSpreadsheetDocument)UnoRuntime.queryInterface
+        (XSpreadsheetDocument.class, xSpreadsheetComponent);
+}
+   下一个定义的方法，getXSpreadsheet( )，定义如下，这个方法帮助我们精确定位要与哪个电子表格文档进行交互。默认情况下，Calc应用程序在启动的时候就已经建立好了三个电子表。这三个电子表的名称分别是“Sheet1”、“Sheet2”、“Sheet3”，这三个电子表会随着您启动Calc应用程序而打开。如果您将字符串“Sheet1”传递给getXSpreadsheet( )方法，那么接下来您所做的改动都将在“Sheet1”电子表中进行。然而，您或许想要给自定义的电子表起一个不同于默认命名方式的名字。比如说，您将电子表命名为“Javalobby Article Analyzer”。如果您将这个名字作为参数传递给getXSpreadsheet( )方法，一个以此字符串命名的电子表将被构建。 
+
+然而，默认情况下，叫“Sheet1”的电子表仍然是当前电子表，所谓当前电子表就是在应用程序启动时呈现在用户面前的那个电子表。无论您是否新建电子表，默认的三个电子表始终都是存在的。假如您想将您自己定义的电子表设为当前状态，您可以有两种选择。一种是使用在getXSpreadsheet( )方法之后定义的getXActiveSpreadsheet( )方法，另外您可以直接将默认的三个电子表删除掉，就如下面的getXSpreadsheet( )方法中的一样，而一旦这三个电子表被删除之后也就只剩下您自定义的那个电子表了，所剩的最后一个电子表也就理所当然地成为当前电子表了。 
+
+public XSpreadsheet getXSpreadsheet(XSpreadsheetDocument xSpreadsheetDocument, String name)
+    throws Exception 
+{
+    XSpreadsheets xSpreadsheets = xSpreadsheetDocument.getSheets();
+    //See section 2.5.2 of the OpenOffice.org API:
+    xSpreadsheets.insertNewByName(name, (short)0);
+    Object sheet = xSpreadsheets.getByName(name);
+    xSpreadsheets.removeByName("Sheet1");
+    xSpreadsheets.removeByName("Sheet2");
+    xSpreadsheets.removeByName("Sheet3");
+    return (XSpreadsheet)UnoRuntime.queryInterface(XSpreadsheet.class, sheet);
+}
+   接下来的方法是如何将电子表设为当前电子表： 
+
+public XSpreadsheet getXActiveSpreadsheet(XComponent xSpreadsheetComponent,
+    XSpreadsheet xSpreadsheet) throws Exception 
+{
+    XModel xSpreadsheetModel = (XModel)UnoRuntime.queryInterface(XModel.class,
+        xSpreadsheetComponent);
+    XController xSpreadsheetController = xSpreadsheetModel.getCurrentController();
+    XSpreadsheetView xSpreadsheetView = (XSpreadsheetView)UnoRuntime.
+        queryInterface(XSpreadsheetView.class, xSpreadsheetController);
+    xSpreadsheetView.setActiveSheet(xSpreadsheet);
+    return xSpreadsheet;
+}
+--------------------------------------------------------------------------------
+3.3  数据的设置
+   我们需要使用的有三种类型的数据。在开始之前，我们需要有个方法来获得对单元格的访问。这一节的其他辅助性方法也将使用此方法，定义如下： 
+
+public XCell getXCellByPosition(XSpreadsheet xSpreadsheet, int x, int y)
+    throws Exception 
+{
+    return xSpreadsheet.getCellByPosition(x, y);
+}
+   首先，我们将要接触到文本类型的数据，比如说Javalobby文章的标题。对于这种数据，辅助性方法需要电子表对象、列位置、行位置以及数据本身作为参数。 
+
+public void setTextValueOfXCellAtPosition(XSpreadsheet
+    xSpreadsheet, int x, int y, String value) throws Exception 
+{
+    //We first identify the cell we need to work with,
+    //using the incoming x and y values:
+    XCell xCell = getXCellByPosition(xSpreadsheet, x, y);
+    //Next, since we're working with text, we define
+    //a text object and a cursor object and insert the received content into the cell:
+    XText xText = (com.sun.star.text.XText)UnoRuntime.queryInterface(com.sun.
+        star.text.XText.class, xCell);
+    XTextCursor xTextCursor = xText.createTextCursor();
+    xText.insertString(xTextCursor, value, false);
+}
+   其次，对于数字类型的数据，比如说“Reply”列的数据，辅助性方法要求传递double类型的参数： 
+
+public void setNumValueOfXCellAtPosition(XSpreadsheet
+    xSpreadsheet, int x, int y, double value) throws Exception 
+{
+    //First we get the cell identified by the received x and y values:
+    XCell xCell = getXCellByPosition(xSpreadsheet, x, y);
+    //Then we add the received value to the identified cell:
+    xCell.setValue(value);
+}
+
+最后，尽管Calc的公式是普通的字符串，我们可以使用OpenOffice.org的API所包含的单元格样式属性来为单元格设置预定义的“Result”样式，这主要是针对我们汇总回复总数的计算公式来进行设置： 
+
+public void setFormulaOfXCellAtPosition(XSpreadsheet
+    xSpreadsheet, int x, int y, String formula) throws Exception 
+{
+    //We get the cell defined by the incoming x and y values"
+    XCell xCell = getXCellByPosition(xSpreadsheet, x, y);
+    //We add a Calc formula to the cell, as received by the helper method:
+    xCell.setFormula(formula);
+    //We attach a property set to our cell, so that we can define a property:
+    XPropertySet xCellProps = (XPropertySet)UnoRuntime.
+        queryInterface(XPropertySet.class, xCell);
+    //We set the style of the cell, using a predefined "Result" style,
+    //which comes out of the box with the OpenOffic.org API:
+    xCellProps.setPropertyValue("CellStyle", "Result");
+}
+  3.4  颜色的使用
+   下面的代码将在随后被使用： 
+
+if (position%2 == 0) 
+{
+    oooHelper.setColorRow(xSpreadsheet, position, 0xFF9933);
+}
+   在ARGB颜色空间中，0xFF9933代表橙色。如果行数是偶数，那么电子表、行数以及橙色会被作为参数传递给方法： 
+
+public void setColorRow(XSpreadsheet
+    xSpreadsheet, int row, int color) throws Exception 
+{
+    //First we get the range of cells we want to deal with,
+    //which is the whole spreadsheet:
+    XCellRange xCellRange = (XCellRange)UnoRuntime.queryInterface
+        ( XCellRange.class, xSpreadsheet );
+    //Next, we narrow down our selection further,
+    //going from column 0/current row to column 3/current row,
+    //which is a whole row from left to right:
+    XCellRange xSelectedCells = xCellRange.getCellRangeByPosition(0, row, 3, row);
+    //Next, we create a property set and assign it to our selected range:
+    XPropertySet xCellProps =
+        (XPropertySet)UnoRuntime.queryInterface(XPropertySet.class,xSelectedCells);
+    //This line sets the color to white, which basically
+    //refreshes the row color before we add our new row color:
+    xCellProps.setPropertyValue("CellBackColor", new Integer(16777215));
+    //This line sets the color to whatever is received,
+    //in this case orange:
+    xCellProps.setPropertyValue("CellBackColor", new Integer(color));
+}
+   如果用户需要看到“Most Replies”或者“Least Replies”，我们将使用以下代码进行设置： 
+
+ooHelper.setColorCell(xSpreadsheet, 2, jTable1.getRowCount()+5, 0x008000);
+
+   以下的方法需要电子表、列数、行数以及颜色值作为参数： 
+
+public void setColorCell(XSpreadsheet xSpreadsheet, int column, int row, int color)
+    throws Exception 
+{
+    //First, we select the entire received spreadsheet:
+    XCellRange xCellRange = (XCellRange)UnoRuntime.queryInterface( XCellRange.class,
+        xSpreadsheet );
+    //From the received spreadsheet, we select a single cell,
+    //defined by the row and column received:
+    XCellRange xSelectedCells = xCellRange.getCellRangeByPosition(column,
+        row, column, row);
+    //We define a property set, an object to contain the cell's properties:
+    XPropertySet xCellProps = (XPropertySet)UnoRuntime.queryInterface
+        (XPropertySet.class, xSelectedCells);
+    //This line sets the color to white, to refresh the cell:
+    xCellProps.setPropertyValue("CellBackColor", new Integer(16777215));
+    //This line sets the background color of the cell to whatever is received:
+    xCellProps.setPropertyValue("CellBackColor", new Integer(color));
+}
+--------------------------------------------------------------------------------

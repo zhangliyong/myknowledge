@@ -1,0 +1,13 @@
+﻿++ Scribe Fire CSDN
+
+URL: http://blog.csdn.net/lyzhang87
+
+Type: MetaWeblog
+
+API URL: http://blog.csdn.net/lyzhang87/services/metablogapi.aspx
+
+Blog ID: lyzhang87
+
+Username: lyzhang87
+
+Password: zhangliyong

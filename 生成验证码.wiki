@@ -1,0 +1,67 @@
+﻿++ 生成验证码
+
+关于jsp验证码生成，显示，验证和刷新：
+  1:四位数据的验证图片生成，用servlet实现
+  2:在web.xmlli配置servlet
+  3:页面上显示servlet生成的图片
+  4:关于验证码输入数据的验证
+  5:验证码的刷新
+——————————————————————–
+1：四位数据的验证图片生成，用servlet实现,servlet代码如下：
+import java.io.*;
+import javax.servlet.http.*;
+import javax.servlet.*;
+import java.util.*;
+import java.awt.*;
+import java.awt.image.*;
+import javax.imageio.*;
+public class vImage extends HttpServlet {
+public void init(ServletConfig conf) throws ServletException {
+super.init(conf);
+}
+public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+res.setContentType(”image/jpeg”);
+res.setHeader(”Pragma”, “No-cache”);
+res.setHeader(”Cache-Control”, “no-cache”);
+res.setDateHeader(”Expires”, 0);
+HttpSession session = req.getSession();
+// 在内存中创建图象
+int width = 60, height = 20;
+BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+// 获取图形上下文
+Graphics g = image.getGraphics();
+// 生成随机类
+Random random = new Random();
+// 设定背景色
+g.setColor(getRandColor(200, 250));
+g.fillRect(0, 0, width, height);
+// 设定字体
+g.setFont(new Font(”Times New Roman”, Font.PLAIN, 18));
+// 画边框
+//g.setColor(new Color());
+//g.drawRect(0,0,width-1,height-1);
+// 随机产生155条干扰线，使图象中的认证码不易被其它程序探测到
+g.setColor(getRandColor(160, 200));
+for (int i = 0; i 255) fc = 255;
+if (bc > 255) bc = 255;
+int r = fc + random.nextInt(bc - fc);
+int g = fc + random.nextInt(bc - fc);
+int b = fc + random.nextInt(bc - fc);
+return new Color(r, g, b);
+}
+}
+2: 在web.xmlli配置servlet：
+vImage
+/vimage
+注：注意元素在web.xml文件里的位置
+3：页面上显示servlet生成的图片：
+
+注：在需要显示验证码的地方加上这句，name在刷新验证码的时候会用到。
+4: 关于验证码输入数据的验证：
+验证码生成时存入了session,就是servlet里的这句session.setAttribute(”post_validate_code”, sRand);具体验证就不多说了。
+5: 验证码的刷新
+刷新验证码
+function reloadImage(url)
+{
+document.form名字.pic.src = url;
+}

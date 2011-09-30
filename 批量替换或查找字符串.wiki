@@ -1,0 +1,24 @@
+﻿++ 批量替换或查找字符串
+
+linux sed 批量替换多个文件中的字符串 
+
+sed -i "s/oldstring/newstring/g" `grep oldstring -rl yourdir` 
+
+例如：替换/home下所有文件中的www.admin99.net为admin99.net 
+
+sed -i "s/www.admin99.net/admin99.net/g" `grep www.admin99.net -rl /home` 
+
+这个` 符号是F1下边，tab键上边，数字1左边的那个，不是单引号 ' 
+
+查找 
+grep   who   /use/local   -r   
+  who是pattern，如果含有特殊字符则要加上引号。   
+  /usr/local是local，   
+  -r   是option，表示所有的文件，且对子目录递归，   
+  但是用了这个，就不能指定*.c之类的参数了。 
+
+find   .   -type   f   -regex   ".*\.c"   -print   -exec   grep   "string"   {}   \;   
+    
+  这是在*.c文件中查找string的命令，-print可选，打印文件名用的。 
+-print放在最后比较好 
+find   .   -type   f   -exec   grep   "string"   {}   ;\   -print  

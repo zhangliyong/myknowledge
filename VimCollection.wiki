@@ -1,0 +1,10 @@
+*去掉windows下文件中的^M*
+    1,$ s/^M//gc
+    or
+    % s/^M//gc
+
+    To type ^M hit ctrl+v first and then M.
+    
+[[Search and replace]]
+
+[[makeprg]]

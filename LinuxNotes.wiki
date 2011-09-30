@@ -1,3 +1,88 @@
-ShellProgramming
+++ Linux
+
+[[Linux系统学习方法论]]
+
+[[一个linux常见命令的列表]]
+
+[[linux查看系统信息的命令]]
+
+[[linux Kill多个进程]]
+
+[[mount 使用汇总]]
+
+[[Linux vi命令手册]]
+
+[[shell 编程基础]]
+
+[[屏幕协作]]
+
+[[找回根密码]]
+
+[[wget]]
+
+[[批量替换或查找字符串]]
+
+[[Ubuntu设置环境变量三法]]
+
+[[Du命令功能说明 统计目录或文件所占磁盘空间的大小]]
+
+[[ubuntu下挂载卸载USB存储设备方法]]
+
+[[Linux磁盘管理]]
+
+[[GNU Screen]]
+
+[[使用 screen 管理你的远程会话]]
+
+[[subversion]]
+
+[[Makefile学习教程 跟我一起写 Makefile]]
+
+[[设置ntfs挂载 以ubuntu下为例]]
+
+[[ssh]]
+
+[[使用grep恢复被删文件内容]]
+
+[[linux 统计当前目录下文件数]]
+
+[[Linux命令中正则表达式的运用]]
+
+[[linux 通配符与正则表达式grep find]]
+
+[[超实用的Linux Unix快捷键大汇总]]
+
+[[最牛B的 Linux Shell 命令]]
+
+[[牛人王垠]]
+
+
+[[shell问答录：命令、进程、子shell...]]
+
+[[在shell编程中进行数值运算]]
+
+[[Shell中的]]
+
+[[Bash 的陷阱]]
+
+[[shell script的追踪与 debug]]
+
+[[从bash函数中返回任意值]]
 
 [[改变VIM的工作目录]]
+
+[[linux exec]]
+
+[[Linux服务器性能评估]]
+
+[[通过三种方法为apt-get设置http代理服务]]
+
+[[统计当前目录及子目录下java代码的行数]]
+
+[[vim录制]]
+
+用如下命令可打开摄像头：mplayer tv:// 
+
+[[rsync]]
+
+[[nc]]

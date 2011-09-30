@@ -1,0 +1,38 @@
+==使用selenium操作chrome==
+
+下面这个网址介绍了操作chrome的条件
+http://code.google.com/p/selenium/wiki/ChromeDriver
+主要就是要安装chrome driver
+Chrome Driver
+
+Developed in collaboration with the Chromium team, the ChromeDriver is a standalone server which implements WebDriver's wire protocol.
+
+Requirements
+The ChromeDriver controls the browser using Chrome's automation proxy framework. Consequently, the ChromeDriver is only compatible with Chrome version 12.0.712.0 or newer.
+
+The server expects you to have Chrome installed in the default location for each system:
+
+|---------+--------------------------------------------------------------------------------------|
+| OS      | Expected Location of Chrome                                                          |
+|---------+--------------------------------------------------------------------------------------|
+| Linux   | /usr/bin/google-chrome                                                               |
+| Mac     | /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome                       |
+| Windows | XP	 %HOMEPATH%\Local Settings\Application Data\Google\Chrome\Application\chrome.exe |
+| Windows | Vista	 C:\Users\%USERNAME%\AppData\Local\Google\Chrome\Application\chrome.exe      |
+|---------+--------------------------------------------------------------------------------------|
+
+1 For Linux systems, the ChromeDriver expects /usr/bin/google-chrome to be a symlink to the actual binary. See also the section on overriding the Chrome binary location .
+
+Getting Started
+To get set up, first download(http://code.google.com/p/chromium/downloads/list) the appropriate prebuilt chromedriver. Make sure the downloaded server can be located on your PATH or specify its location via the webdriver.chrome.driver system property. Finally, all you need to do is create a new ChromeDriver instance:
+
+from selenium import webdriver
+
+def create_driver():
+    driver = webdriver.Chrome()
+    return driver
+    
+这时候就可以用driver来操作chrome了。可以通过python下的help(driver)来查看相关文档。
+
+=Attention:=
+    当driver切换tab时，在原来tab中的所有对象都将失效，如果以后还要利用，需要回到原来的tab中重新获取。    

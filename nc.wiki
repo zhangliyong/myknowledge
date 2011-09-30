@@ -1,0 +1,20 @@
+NAME
+     nc — arbitrary TCP and UDP connections and listens
+
+SYNOPSIS
+     nc [-46DdhklnrStUuvzC] [-i interval] [-P proxy_username] [-p source_port] [-s source_ip_address] [-T ToS] [-w timeout] [-X proxy_protocol] [-x
+        proxy_address[:port]] [hostname] [port[s]]
+
+DESCRIPTION
+     The nc (or netcat) utility is used for just about anything under the sun involving TCP or UDP.  It can open TCP connections, send UDP packets, listen on arbi‐
+     trary TCP and UDP ports, do port scanning, and deal with both IPv4 and IPv6.  Unlike telnet(1), nc scripts nicely, and separates error messages onto standard
+     error instead of sending them to standard output, as telnet(1) does with some.
+
+     Common uses include:
+
+           ·   simple TCP proxies
+           ·   shell-script based HTTP clients and servers
+           ·   network daemon testing
+           ·   a SOCKS or HTTP ProxyCommand for ssh(1)
+           ·   and much, much more
+

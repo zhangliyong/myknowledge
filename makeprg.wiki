@@ -1,0 +1,11 @@
+use the command :h makeprg to see more detail
+
+simple example:
+*:set makeprg=gcc\ %*  (% means the current file)
+then when you run *:make*, it will compile the current file
+
+if there are errors, you can use :copen to see and locate these errors.
+
+you can use
+*:set makeprg=gcc\ %\ &&\ ./a.out*
+to compile and run the file

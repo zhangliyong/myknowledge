@@ -1,0 +1,232 @@
+﻿++ linux 通配符与正则表达式grep find
+
+首先要记住的是: 正则表达式与通配符不一样,它们表示的含义并不相同!
+find:开始之前，我们先来看一下 find 命令的基本结构：
+
+find   start_directory  test  options   criteria_to_match action_to_perform_on_results
+在以下命令中，find 将开始在当前目录（用“.”表示）中查找任何扩展名为“java”的文件：
+find . -name  "*.java"    (-name 参数后面跟的是通配符)
+下面是该命令所找到的命令的缩略清单：
+
+find . -name  "*.java"
+./REGEXPvalidate/src/oracle/otnsamples/plsql/ConnectionManager.java
+./REGEXPvalidate/src/oracle/otnsamples/plsql/DBManager.java
+..
+[注意：如果您从本文剪切并粘贴来运行该 find 命令，您可能需要使用自己的键盘替换双引号 (“”) 才能得出正确的结果。]
+
+以下命令将执行相同的操作。在这两种情况下，您都需要对通配符进行转义以确保它传递到 find 命令并且不由 shell 解释。因此，请将您的搜索字符串放到引号里，或者在它前面加上反斜线：
+
+find . -name  \*.java
+尽管 find 的所有参数均为可选，但是如果您未指定从哪里开始搜索，搜索默认将在当前目录中开始。如果您不指定要匹配的测试连接、选项或值，您的结果将不完整或者无区别。
+
+运行以下三个 find 命令将得出同样的结果 — 当前目录和所有子目录中的所有文件（包括隐藏文件）的完整清单：
+
+find 
+find .
+find . -print
+这类似于运行一个带 -la 选项的 ls 命令。如果您希望上述命令的输出包含完整的路径名（或许是为了备份），您将需要指定起始目录的完整路径：
+
+find /home/bluher -name \*.java
+/home/bluher/plsql/REGEXPvalidate/src/oracle/otnsamples/plsql/ConnectionManager.java
+/home/bluher/plsql/REGEXPvalidate/src/oracle/otnsamples/plsql/DBManager.java/
+...
+您还可以在搜索字符串中指定多个起始目录。如果以具有相应权限的用户身份运行，以下命令将下到 /usr、/home /tmp 目录查找所有 jar 文件：
+
+find /usr /home  /tmp -name "*.jar"
+但是，如果您没有相应的权限，您在开始浏览许多系统目录时将生成错误消息。以下是一个示例：
+
+find:  /tmp/orbit-root: Permission denied
+您可以通过附加您的搜索字符串来避免混乱的输出，如下所示：
+
+find /usr /home  /tmp -name "*.jar" 2>/dev/null
+这会将所有错误消息发送到空文件，因此提供清理器输出。
+
+默认情况下，find 是区分大小写的。对于不区分大小写的 find，将 -iname 测试替换为 -name 测试。
+
+find downloads  -iname "*.gif"
+downloads/.xvpics/Calendar05_enlarged.gif
+downloads/lcmgcfexsmall.GIF
+正则表达式只是一种表示法,只要工具支持这种表示法， 那么该工具就可以处理正则表达式的字符串。vim、grep、awk 、sed 都支持正则表达式，也正是因为由于它们支持正则，才显得它们强大；
+1基础正则表达式
+grep 工具，以前介绍过。
+grep -[acinv]   '搜索内容串'   filename
+-a 以文本文件方式搜索
+-c 计算找到的符合行的次数
+-i 忽略大小写
+-n 顺便输出行号
+-v 反向选择，即显示不包含匹配文本的所有行
+
+-h 查询多文件时不显示文件名。-l 查询多文件时只输出包含匹配字符的文件名。-s 不显示不存在或无匹配文本的错误信息。grep命令加- E参数，这一扩展允许使用扩展模式匹配。其中搜索串可以是正则表达式!
+
+---
+
+grep aa（aa里面匹配用的字符是正则表达式） txt（txt里面匹配用的字符是通配符）   
+显示在txt文件中匹配aa的行
+
+
+
+先用例子说明问题：
+以下为整理的grep 正则表达式的大部分功能,详细参见man 
+grep: 要用好grep这个工具，其实就是要写好正则表达式，所以这里不对grep的所有功能进行实例讲解，只列几个例子，讲解一个正则表达式的写法。 
+$ ls -l | grep '^a' 通过管道过滤ls -l输出的内容，只显示以a开头的行。 
+$ grep 'test' d* 显示所有以d开头的文件中包含test的行。 
+$ grep 'test' aa bb cc 显示在aa，bb，cc文件中匹配test的行。 
+$ grep '[a-z]\{5\}' aa 显示所有包含每个字符串至少有5个连续小写字符的字符串的行。 
+$ grep 'w\(es\)t.*\1' aa 如果west被匹配，则es就被存储到内存中，并标记为1，然后搜索任意个字符（.*），这些字符后面紧跟着另外一个es（\1），找到就显示该行。如果用egrep或grep -E，就不用"\"号进行转义，直接写成'w(es)t.*\1'就可以了。
+
+grep正则表达式元字符集（基本集） 
+^ 锚定行的开始 如：'^grep'匹配所有以grep开头的行。 
+$ 锚定行的结束 如：'grep$'匹配所有以grep结尾的行。 
+. 匹配一个非换行符的字符 如：'gr.p'匹配gr后接一个任意字符，然后是p。 
+* 匹配零个或多个先前字符 如：'*grep'匹配所有一个或多个空格后紧跟grep的行。 
+.*一起用代表任意字符。 
+[] 匹配一个指定范围内的字符，如'[Gg]rep'匹配Grep和grep。 
+[^] 匹配一个不在指定范围内的字符，如：'[^A-FH-Z]rep'匹配不包含A-R和T-Z的一个字母开头，紧跟rep的行。 
+\(..\) 标记匹配字符，如'\(love\)'，love被标记为1。 
+\< 锚定单词的开始，
+\> 锚定单词的结束，如'grep\>'匹配包含以grep结尾的单词的行。 
+x\{m\} 重复字符x，m次，如：'o\{5\}'匹配包含5个o的行。 x\{m,\} 重复字符x,至少m次，如：'o\{5,\}'匹配至少有5个o的行。 
+x\{m,n\} 重复字符x，至少m次，不多于n次，如：'o\{5,10\}'匹配5--10个o的行。 
+\w 匹配文字和数字字符，也就是[A-Za-z0-9_]，如：'G\w*p'匹配以G后跟零个或多个文字或数字字符，然后是p。 
+\W \w的反置形式，匹配一个或多个非单词字符，如点号句号等。 
+\b 单词锁定符，如: '\bgrep\b'只匹配grep。
+
+关于匹配的实例：
+grep -c "48" test.txt 统计所有以“48”字符开头的行有多少
+grep -i "May" test.txt 不区分大小写查找“May”所有的行）
+grep -n "48" test.txt 显示行号；显示匹配字符“48”的行及行号，相同于 nl test.txt |grep 48）
+grep -v "48" test.txt 显示输出没有字符“48”所有的行）
+grep "471" test.txt 显示输出字符“471”所在的行）
+grep "48;" test.txt 显示输出以字符“48”开头，并在字符“48”后是一个tab键所在的行
+grep "48[34]" test.txt 显示输出以字符“48”开头，第三个字符是“3”或是“4”的所有的行）
+grep "^[^48]" test.txt 显示输出行首不是字符“48”的行）
+grep "[Mm]ay" test.txt 设置大小写查找：显示输出第一个字符以“M”或“m”开头，以字符“ay”结束的行）
+grep "K…D" test.txt 显示输出第一个字符是“K”，第二、三、四是任意字符，第五个字符是“D”所在的行）
+grep "[A-Z][9]D" test.txt 显示输出第一个字符的范围是“A-D”，第二个字符是“9”，第三个字符的是“D”的所有的行
+grep "[35]..1998" test.txt 显示第一个字符是3或5，第二三个字符是任意，以1998结尾的所有行
+grep "4\{2,\}" test.txt 模式出现几率查找：显示输出字符“4”至少重复出现两次的所有行
+grep "9\{3,\}" test.txt 模式出现几率查找：显示输出字符“9”至少重复出现三次的所有行
+grep "9\{2,3\}" test.txt 模式出现几率查找：显示输出字符“9”重复出现的次数在一定范围内，重复出现2次或3次所有行
+grep -n "^$" test.txt 显示输出空行的行号
+ls -l |grep "^d" 如果要查询目录列表中的目录 同：ls -d *
+ls -l |grep "^d[d]" 在一个目录中查询不包含目录的所有文件
+ls -l |grpe "^d…..x..x" 查询其他用户和用户组成员有可执行权限的目录集合
+
+更多的例子:
+1
+搜索有the的行,并输出行号
+$grep -n 'the' regular_express.txt
+搜 索没有the的行,并输出行号
+$grep -nv 'the' regular_express.txt
+
+2 利 用[]搜索集合字符
+[] 表示其中的某一个字符 ，例如[ade] 表示a或d或e
+woody@xiaoc:~/tmp$ grep -n 't[ae]st' regular_express.txt 
+8:I can't finish the test.
+9:Oh! the soup taste good!
+
+可以用^符号做[]内的前缀，表示除[]内的字符之外的字 符。
+比如搜索oo前没有g的字符串所在的行. 使用 '[^g]oo' 作搜索字符串
+woody@xiaoc:~/tmp$ grep -n '[^g]oo' regular_express.txt 
+2:apple is my favorite food.
+3:Football game is not use feet only.
+18:google is the best tools for search keyword.
+19:goooooogle yes!
+
+[] 内可以用范围表示，比如[a-z] 表示小写字母,[0-9] 表示0~9的数字, [A-Z] 则是大写字母们。[a-zA-Z0-9]表示所有数字与英文字符。 当然也可以配合^来排除字符。
+搜索包含数字的行
+woody@xiaoc:~/tmp$ grep -n '[0-9]' regular_express.txt 
+5:However ,this dress is about $ 3183 dollars.
+15:You are the best is menu you are the no.1.
+
+行首与行尾字符 ^ $. ^ 表示行的开头，$表示行的结尾( 不是字符，是位置）那么‘^$’ 就表示空行,因为只有
+行首和行尾。
+这里^与[]里面使用的^意义不同。它表示^后面的串是在行的开头。
+比如搜索the在开头的行
+woody@xiaoc:~/tmp$ grep -n '^the' regular_express.txt 
+12:the symbol '*' is represented as star.
+
+搜索以小写字母开头的行
+woody@xiaoc:~/tmp$ grep -n '^[a-z]' regular_express.txt 
+2:apple is my favorite food.
+4:this dress doesn't fit me.
+10:motorcycle is cheap than car.
+12:the symbol '*' is represented as star.
+18:google is the best tools for search keyword.
+19:goooooogle yes!
+20:go! go! Let's go.
+woody@xiaoc:~/tmp$
+
+搜索开头不是英文字母的行
+woody@xiaoc:~/tmp$ grep -n '^[^a-zA-Z]' regular_express.txt 
+1:"Open Source" is a good mechanism to develop programs.
+21:#I am VBird
+woody@xiaoc:~/tmp$
+
+$表示它前面的串是在行的结尾，比如 '\.' 表示 . 在一行的结尾
+搜索末尾是.的行
+woody@xiaoc:~/tmp$ grep -n '\.$' regular_express.txt //. 是正则表达式的特殊符号，所以要用\转义
+1:"Open Source" is a good mechanism to develop programs.
+2:apple is my favorite food.
+3:Football game is not use feet only.
+4:this dress doesn't fit me.
+5:However ,this dress is about $ 3183 dollars.
+6:GNU is free air not free beer.
+.....
+
+注意在MS的系统下生成的文本文件，换行会加上一个 ^M 字符。所以最后的字符会是隐藏的^M ,在处理Windows
+下面的文本时要特别注意！
+可以用cat dos_file | tr -d '\r' > unix_file 来删除^M符号。 ^M==\r
+
+那么'^$' 就表示只有行首行尾的空行拉！
+搜索空行
+woody@xiaoc:~/tmp$ grep -n '^$' regular_express.txt 
+22:
+23:
+woody@xiaoc:~/tmp$
+
+搜索非空行
+woody@xiaoc:~/tmp$ grep -vn '^$' regular_express.txt 
+1:"Open Source" is a good mechanism to develop programs.
+2:apple is my favorite food.
+3:Football game is not use feet only.
+4:this dress doesn't fit me.
+
+通配符 
+
+1、基本的通配符有哪些？ 
+
+“？”可替代单个字符。 
+
+“*”可替代任意字符。 
+
+方括号“[charset]”可替代charset集中的任何单个字符。 
+
+对最后一条做些解释。[cChH] 通配符便可替代c或h字符的大小写形式。 
+通配符集还能描述介于字符对之间的所有字符。如“[a-z]”就可以代 
+替任意小写字母，而[a-zA-Z]则可替代任意字母。注意可替代的字符 
+包括字符包括字符对之间的所有字符。 
+
+与DOS相比，UNIX的通配符机制要比DOS好得多。在DOS中，任何在“*” 
+之后，在“.”之彰的字符均被忽略，所以下面的指令将不能得到你想 
+象的结果。 
+
+del *bak.* 
+
+在DOS中，用户只能用此命令删除当前目前下的所有文件，除非系统要 
+求你不这样做。而在UNIX系统中，“*”可替代包括0在内的任意数字的 
+字符，但一行中的其余特征也仍需匹配，因此“bak.*”可匹配 
+newbak.save、oldbak.new甚至bak.temp，但不能和newbak匹配，因为后 
+者不含“.”。这非常巧妙，可大大方便用户，而“*bak”则可匹配以上 
+所有的词条，包括newbak。 
+
+
+
+2、能在一条指令中用多个通配符吗？ 
+
+可以，如 
+
+rm a*out*tmp? 
+
+该命令可以删除一系列临时性的输出文件，如ab.out.temp1、ab.out.temp1 
+等。

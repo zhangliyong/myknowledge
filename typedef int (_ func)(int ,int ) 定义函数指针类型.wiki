@@ -1,0 +1,29 @@
+先看一下例子：
+
+#include "iostream"
+
+using namespace std;
+
+int add(int a,int b){
+return (a+b);
+}
+
+typedef int (* lpAddFun)(int ,int ) ;
+
+void main(){
+func f = add;
+int n = f(1,2);
+cout << n << endl;
+}
+
+其中 typedef int (* func)(int ,int ) 比较难理解，因为我们知道typedef 是宏定义，一般的语法是这样：
+
+typedef unsigned long ulong;
+
+这个定义是用ulong作unsigned long 的别名
+
+在这里的意思是定义一种指针类型lpAddFun，它是一种指向函数int (int,int)的指针，也就是说lpAddFun表示的是这种类型的函数的地址，因为：
+
+函数名不是其类型的一部分函数的类型只由它的返回值和参数表决定.指向add()的指针必须指向与add()相同类型的函数带有相同的返回类型和相同的参数表   。
+
+int (* func)(int ,int )和int* func(int ,int )是不同的，后者说明的是返回一个int类型的指针，所以括号是必须加的

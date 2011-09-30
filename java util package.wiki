@@ -1,0 +1,4 @@
+﻿++ java util package
+
+PriorityQueue:
+    It is implemented using heap to sort the elements.

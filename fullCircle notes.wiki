@@ -1,0 +1,9 @@
+﻿++ full Circle notes
+
+1, make and publish deb files
+    issue12 zh_CN.pdf P8.
+    
+2, contribute to open source
+    translation: https://launchpad.net
+    
+3,

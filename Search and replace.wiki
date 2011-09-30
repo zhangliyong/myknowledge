@@ -1,0 +1,163 @@
+Vim provides the :s (substitute) command for search and replace; this tip shows examples of how to substitute. On some systems, gvim has Find and Replace on the Edit menu (:help :promptrepl), however it is easier to use the :s command due to its command line history and ability to insert text (for example, the word under the cursor) into the search or replace fields.
+Contents
+[show]
+
+    1 Basic search and replace
+    2 Details
+    3 Using the current word or registers
+    4 Additional examples
+    5 Special cases
+    6 See also: using substitute
+    7 See also: substitute in buffers/files
+    8 References
+    9 Comments
+
+Basic search and replaceEdit Basic search and replace sectionEdit
+
+The :substitute command searches for a text pattern, and replaces it with a text string. There are many options, but these are what you probably want:
+
+:%s/foo/bar/g
+    Find each occurrence of 'foo', and replace it with 'bar'. 
+
+:%s/foo/bar/gc
+    Change each 'foo' to 'bar', but ask for confirmation first. 
+
+:%s/\<foo\>/bar/gc
+    Change only whole words exactly matching 'foo' to 'bar'; ask for confirmation. 
+
+:%s/foo/bar/gci
+    Change each 'foo' (case insensitive) to 'bar'; ask for confirmation. 
+
+:%s/foo/bar/gcI
+    Change each 'foo' (case sensitive) to 'bar'; ask for confirmation. 
+
+The g flag means global – each occurrence in the line is changed, rather than just the first.
+DetailsEdit Details sectionEdit
+
+Search range:
+:s/foo/bar/g 	Change each 'foo' to 'bar' in the current line.
+:%s/foo/bar/g 	Change each 'foo' to 'bar' in all lines.
+:5,12s/foo/bar/g 	Change each 'foo' to 'bar' for all lines from line 5 to line 12 inclusive.
+:'a,'bs/foo/bar/g 	Change each 'foo' to 'bar' for all lines from mark a to mark b inclusive.
+:.,$s/foo/bar/g 	Change each 'foo' to 'bar' for all lines from the current line (.) to the last line ($) inclusive.
+:.,+2s/foo/bar/g 	Change each 'foo' to 'bar' for the current line (.) and the two next lines (+2).
+:%s/foo/bar/g 	Equivalent to :1,$s/foo/bar/g (change all lines).
+:g/^baz/s/foo/bar/g 	Change each 'foo' to 'bar' in each line starting with 'baz'.
+
+When searching:
+
+    ., *, \, [, ], ^, and $ are metacharacters. 
+    +, ?, |, {, }, (, and ) must be escaped to use their special function. 
+    \/ is / (use backslash + forward slash to search for forward slash) 
+    \t is tab, \s is whitespace 
+    \n is newline, \r is CR (carriage return = Ctrl-M = ^M) 
+    \{#\} is used for repetition. /foo.\{2\} will match foo and the two following characters. The \ is not required on the closing } so /foo.\{2} will do the same thing. 
+    \(foo\) makes a backreference to foo. Parenthesis without escapes are literally matched. Here the \ is required for the closing \). 
+
+When replacing:
+
+    \r is newline, \n is a null byte (0x00). 
+    \& is ampersand (& is the text that matches the search pattern). 
+    \1 inserts the text of the first backreference. \2 inserts the second backreference, and so on. 
+
+You can use other delimiters with substitute:
+
+    :s#http://www.example.com/index.html#http://example.com/# 
+
+Save typing by using \zs and \ze to set the start and end of a pattern. For example, instead of:
+
+    :s/Copyright 2007 All Rights Reserved/Copyright 2008 All Rights Reserved/ 
+
+Use:
+
+    :s/Copyright \zs2007\ze All Rights Reserved/2008/ 
+
+Using the current word or registersEdit Using the current word or registers sectionEdit
+
+:%s//bar/g
+    Replace each match of the last search pattern with 'bar'. 
+    For example, you might first place the cursor on the word foo then press * to search for that word. 
+    The above substitute would then change all words exactly matching 'foo' to 'bar'. 
+
+:%s/foo/<c-r><c-w>/g
+    Replace each occurrence of 'foo' with the word under the cursor. 
+    <c-r><c-w> means that you press Ctrl-R then Ctrl-W. 
+    The word under the cursor will be inserted as though you typed it. 
+
+:%s/foo/<c-r><c-a>/g
+    Replace each occurrence of 'foo' with the WORD under the cursor (delimited by whitespace). 
+    <c-r><c-a> means that you press Ctrl-R then Ctrl-A. 
+    The WORD under the cursor will be inserted as though you typed it. 
+
+:%s/foo/<c-r>a/g
+    Replace each occurrence of 'foo' with the contents of register 'a'. 
+    <c-r>a means that you press Ctrl-R then a. 
+    The contents of register 'a' will be inserted as though you typed it. 
+
+:%s/foo/\=@a/g
+    Replace each occurrence of 'foo' with the contents of register 'a'. 
+    \=@a is a reference to register 'a'. 
+    The contents of register 'a' is not shown in the command. This is useful if the register contains many lines of text. 
+
+:%s//<c-r>//g
+    Replace each match of the last search pattern with the / register (the last search pattern). 
+    After pressing Ctrl-R then / to insert the last search pattern (and before pressing Enter to perform the command), you could edit the text to make any required change. 
+
+:%s/<c-r>*/bar/g
+    Replace all occurrences of the text in the system clipboard (in the * register) with 'bar' (see next example if multiline). 
+    On some systems, selecting text (in Vim or another application) is all that is required to place that text in the * register. 
+
+:%s/<c-r>a/bar/g
+    Replace all occurrences of the text in register 'a' with 'bar'. 
+    <c-r>a means that you press Ctrl-R then a. The contents of register 'a' will be inserted as though you typed it. 
+    Any newlines in register 'a' are inserted as ^M and are not found. 
+    The search works if each ^M is manually replaced with '\n' (two characters: backslash, 'n'). 
+    This replacement can be performed while you type the command:
+
+        :%s/<c-r>=substitute(@a,"\n",'\\n','g')<CR>/bar/g 
+
+    The "\n" (double quotes) represents the single character newline; the '\\n' (single quotes) represents two backslashes followed by 'n'. 
+    The substitute() function is evaluated by the <c-r>= (Ctrl-R =) expression register; it replaces each newline with a single backslash followed by 'n'. 
+    The <CR> indicates that you press Enter to finish the = expression. 
+
+See Paste registers in search or colon commands instead of using the clipboard.
+Additional examplesEdit Additional examples sectionEdit
+
+:%s/foo/bar/
+    On each line, replace the first occurrence of "foo" with "bar". 
+
+:%s/.*\zsfoo/bar/
+    On each line, replace the last occurrence of "foo" with "bar". 
+
+:%s/\<foo\>.*//
+    On each line, delete the whole word "foo" and all following text (to end of line). 
+
+:%s/\<foo\>.\{5}//
+    On each line, delete the whole word "foo" and the following five characters. 
+
+:%s/\<foo\>\zs.*//
+    On each line, delete all text following the whole word "foo" (to end of line). 
+
+:%s/.*\<foo\>//
+    On each line, delete the whole word "foo" and all preceding text (from beginning of line). 
+
+:%s/.*\ze\<foo\>//
+    On each line, delete all the text preceding the whole word "foo" (from beginning of line). 
+
+:%s/.*\(\<foo\>\).*/\1/
+    On each line, delete all the text preceding and following the whole word "foo". 
+
+Special casesEdit Special cases sectionEdit
+
+For substituting patterns with a corresponding case-sensitive text, Michael Geddes's keepcase plugin can be used, e.g.:
+
+:%SubstituteCase/\cHello/goodBye/g
+    Substitute 'Hello hello helLo HELLO' by 'Goodbye goodbye goodBye GOODBYE' 
+
+For changing the offsets in a patch file (line number of a block), this little snippet can be used:
+
+s/^@@ -\(\d\+\),\(\d\+\) +\(\d\+\),\(\d\+\) @@$/\="@@ -".eval(submatch(1)+offsetdiff).",".submatch(2)." +".eval(submatch(3)+offsetdiff).",".submatch(4)." @@"/g
+
+Useful when we want to strip some blocks from a patch, without patch having to complain about offset differences.
+
+    Note Should try to make the expression more compact, but don't know how without having the possibility of modifying unwanted lines. 

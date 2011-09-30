@@ -1,0 +1,15 @@
+﻿++ ubuntu下挂载卸载USB存储设备方法
+
+A：先说U盘
+1、用root帐户登录；
+2、mkdir /mnt/usb；（注：创建挂载目录）
+**要查看U盘是哪个设备用命令 fdisk -l 显示sdxy的就是USB的设备，挂的时候看看具体要刮哪个
+3、mount /dev/sdb1 /mnt/usb；(注：挂载U盘)
+4、现在就可以使用U盘了，在/mnt/usb目录下的内容就是U盘里的内容了；
+5、使用完后，用以下命令卸载U盘即可。
+**先CD到根目录，否则会显示device is bust
+umount /mnt/usb
+
+B:挂载 光驱 或者软驱
+#mount /dev/cdrom 光驱
+#mount /dev/fd0 软驱

@@ -1,0 +1,1 @@
+find . -name "*.java" |xargs cat|grep -v ^$|wc -l

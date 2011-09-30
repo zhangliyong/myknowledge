@@ -1,0 +1,14 @@
+An and list has the form
+
+     command1 && command2
+
+command2 is executed if, and only if, command1 returns an exit status of zero.
+
+An or list has the form
+
+     command1 || command2
+
+command2 is executed if, and only if, command1 returns a non-zero exit status.
+
+The return status of and and or lists is the exit status of the last command executed in the list.
+

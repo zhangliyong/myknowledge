@@ -1,0 +1,162 @@
+作者:	熊春雷
+网站:	http://www.autodev.net
+Blog:	http://blog.csdn.net/pandaxcl
+EMail:	pandaxcl@163.com
+昵称:	pandaxcl，开心
+QQ:	56637059
+MSN:	pandaxcl@163.com
+版权:	本文的版权归熊春雷所有
+
+Warning
+
+    本文由熊春雷所写，绝对保证原创，在此特别严肃声明。本人简介：熊春雷，男，1980年出生于湖北钟祥；七岁随父迁往宜昌开始学生生涯，小学和初中在湖北宜昌樟村坪镇职工子弟学校就读；1996年考上宜昌县高中，开始三年的高中生活；1999-2003就读于湖北大学物理系；2003-2006就读于武汉大学物理系。现就职于盛大网络：）
+
+    绝对不能容忍他人说本文为他所写以及其他的侵权行为。一旦发现，一定尽本人最大的能力以法律的形式严追到底，决不妥协。
+
+    引用本文，要保证本文的完整性，不可以删除此处的声明，并且务必注明出处。
+
+Tip
+
+    更多新鲜的文章将会及时的发布在http://www.autodev.net论坛上面，谢谢关注
+
+Contents
+
+    使用Vim批量完成函数体的生成
+    问题陈述
+    资料准备
+    第一步
+    现在来录制宏
+    执行宏
+    结语
+
+使用Vim批量完成函数体的生成
+问题陈述
+
+在编写C++类的时候，经常需要通过一系列的函数声明对应生成相应函数体的情况，今天在编程的时候，采用了Vim的 宏轻松实现了相应的功能，可以说Vim的宏几乎无所不能！鉴于Vim应用的中文资料比较少，在此我就把我在使用过程中积累下来的经验和网友们分享一下:)
+资料准备
+
+首先来准备一下实验资料：
+
+ int func1();
+ char* func2(int a,int b);
+ int func3(const char*);
+ int func4(void*pFile, const char*pFileName);
+ const char* func5(int a,int b);
+ float func6(const char*);
+ double func7(const char*);
+ std::string func8(const char*);
+
+在h文件里面有了上面的几个函数声明，就需要在cpp文件里面生成相应的函数体框架。下面我们就来采用Vim的宏来实现这个过程：
+第一步
+
+把头文件里面所有函数声明复制到cpp文件里面:
+
+ 8yy
+ p
+
+上面的8yy表示复制八行，p表示将复制的八行代码粘帖到cpp文件中，现在的cpp文件中的内容如下：
+
+ int func1();
+ char* func2(int a,int b);
+ int func3(const char*);
+ int func4(void*pFile, const char*pFileName);
+ const char* func5(int a,int b);
+ float func6(const char*);
+ double func7(const char*);
+ std::string func8(const char*);
+
+现在来录制宏
+
+将光标移动到func1函数的所在行，输入:
+
+ qa0f;xo{<CR>}<CR><Esc>jq
+
+现在来解释上面的密码：
+
+    Vim录制宏是通过'q'开始也是通过'q'结束，所以上面的代码中开始和结束都是字符q
+
+    录制的宏必须要保存到一个变量中，那么就在开始录制宏的最开始选择变量吧。所以第二个字符是'a'，也就是要把所有的操作录制到宏变量'a'里面去，这样的宏变量可以选择26个英文小写字母，在这里选择'a'，你也可以选择其他的变量
+
+    从这个时候开始才是真正的操作的开始，为了使得重复执行仍然有效，在这里是从 func1所在行开始录制宏的，紧接着的'0'表示放置到func1行的第一列
+
+    到了func1所在行的第一列之后，"f;"表示寻找分号(';')所在的位置，注意这里的'f' 是在同一行内进行查找，查找的内容是';'，这样光标就已经定位到了分号上面
+
+    'x’表示删除前一步里面找到的当前光标下的字符，也就是删除分号
+
+    'o'表示在当前行下面新建一空白行，并且进入插入模式
+
+    '{'插入函数体的开始左大括号
+
+    <CR>表示按下Enter键，并不是让你输入'<' 'C' 'R' '>'四个字符
+
+    '}'插入函数体的结束右大括号
+
+    接下来的<CR><Esc>表示依次按下Enter键和Esc键，按下Esc键就可以从当前的插入模式进入normal模式，这为接下来使用normal模式命令'j'做好了准备
+
+    'j'把光标移动到下一行，也就是func2所在的那一行上，这是为了这个宏能够重复进行而特意准备的，这样之后重复执行前面从3到11之间的步骤，可以完成同样的任务
+
+    'q'表示结束当前宏的录制，到此为止，宏就录制完成了，同时光标也出现在了func2 的所在行
+
+现在的cpp文件应该已经变成了下面的样子：
+
+ int func1()
+ {
+ }
+
+ char* func2(int a,int b);
+ int func3(const char*);
+ int func4(void*pFile, const char*pFileName);
+ const char* func5(int a,int b);
+ float func6(const char*);
+ double func7(const char*);
+ std::string func8(const char*);
+
+执行宏
+
+执行到了这里紧接着的事情就是执行前面录制的宏a:
+
+ 7@a
+
+    '7'表示执行7次
+
+    "@a"这是执行宏a的意思，执行宏a就是执行宏a中的所有操作，也就是前面录制的操作
+
+最后得到的cpp文件内容如下所示：
+
+ int func1()
+ {
+ }
+
+ char* func2(int a,int b)
+ {
+ }
+
+ int func3(const char*)
+ {
+ }
+
+ int func4(void*pFile, const char*pFileName)
+ {
+ }
+
+ const char* func5(int a,int b)
+ {
+ }
+
+ float func6(const char*)
+ {
+ }
+
+ double func7(const char*)
+ {
+ }
+
+ std::string func8(const char*)
+ {
+ }
+
+结语
+
+到目前为止，我们已经成功的实现了所有的函数体，接下来的内容就应该是填写函数体的内容了。也许有人为觉得要是能够自动的根据返回值填写相应的return语句，那该多好啊，呵呵，其实这也可以通过这里的宏的方式实现，为了使得本教程的跨度不至于过大，这个问题就留给读者吧：）
+
+是否觉得Vim有点用处了呢？还有很多的应用技巧都可以极大的减轻我们在日常编写文本的过程中负担，心动了么:) 

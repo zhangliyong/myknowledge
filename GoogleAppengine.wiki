@@ -1,0 +1,5 @@
+如果无法上传报如下错误：
+urllib2.URLError: <urlopen error [Errno 111] Connection refused>
+
+则在appcfg.py命令上加上 --insecure 选项
+例如：appcfg.py --insecure update custommobi/

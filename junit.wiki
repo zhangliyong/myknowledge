@@ -1,0 +1,33 @@
+﻿++ junit
+
+五、成批运行test case 
+
+　　这是前面提到的JUnit特性之一。它方便于系统单元测试的成批运行。使用起来也是非常简单，先看下使用代码： 
+
+　　import junit.framework.Test; 
+
+　　import junit.framework.TestSuite; 
+
+　　public class TestAll{ 
+
+　　 public static Test suite(){ 
+
+　　 TestSuite suite = new TestSuite("TestSuite Test"); 
+
+　　 suite.addTestSuite( TestSample.class); 
+
+　　 return suite; 
+
+　　 } 
+
+　　} 
+
+　　这个测试程序的编译、运行，和上面TestSample的方式是一样的。 
+
+　　javac TestAll.java 
+
+　　java junit.swingui.TestRunner TestAll 
+
+　　怎么样？这样你在suite方法里面添加几个TestCase就会运行几个，而且它也可以添加TestSuite来将小一点的集合加入大的集合中来，方便了对于不断增加的TestCase的管理和维护。 
+
+　　你觉得suite方法的作用是不是于java应用程序的main很类似？并且这里的suite必须严格遵守上面的写法！

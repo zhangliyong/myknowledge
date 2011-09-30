@@ -1,0 +1,208 @@
+﻿++ java 读取property文件
+
+二． JDK 中的 Properties 类 Properties 类存在于胞 Java.util 中，该类继承自 Hashtable ，它提供了几个主要的方法： 
+
+        1． getProperty ( String key) ， 用指定的键在此属性列表中搜索属性。也就是通过参数 key ，得到 key 所对应的 value。 
+
+        2． load ( InputStream inStream) ，从输入流中读取属性列表（键和元素对）。通过对指定的文件（比如说上面的 test.properties 文件）进行装载来获取该文件中的所有 
+
+        键 - 值对。以供 getProperty ( String key) 来搜索。 
+
+        3． setProperty ( String key, String value) ，调用 Hashtable 的方法 put 。他通过调用基类的put方法来设置 键 - 值对。 
+
+        4． store ( OutputStream out, String comments) ， 以适合使用 load 方法加载到 Properties 表中的格式，将此 Properties 表中的属性列表（键和元素对）写入输 
+
+        出流。与 load 方法相反，该方法将键 - 值对写入到指定的文件中去。 
+
+        5． clear () ，清除所有装载的 键 - 值对。该方法在基类中提供。 
+
+        有了以上几个方法我们就可以对 .properties 文件进行操作了！ 
+
+    三．代码实例 
+
+Color=#cccccc cellSpacing=0 cellPadding=1 width="80%" align=center bgColor=#ffffff border=1 heihgt="">    package configuration; 
+import Java.io.FileInputStream; 
+import Java.io.FileNotFoundException; 
+import Java.io.FileOutputStream; 
+import Java.io.IOException; 
+import Java.util.Properties; 
+/** *//** 
+* 读取properties文件 
+* @author Qutr 
+* 
+*/ 
+public class Configuration 
+...{ 
+    private Properties propertie; 
+    private FileInputStream inputFile; 
+    private FileOutputStream outputFile; 
+    /** *//** 
+     * 初始化Configuration类 
+     */ 
+    public Configuration() 
+    ...{ 
+        propertie = new Properties(); 
+    } 
+
+    /** *//** 
+     * 初始化Configuration类 
+     * @param filePath 要读取的配置文件的路径+名称 
+     */ 
+    public Configuration(String filePath) 
+    ...{ 
+        propertie = new Properties(); 
+        try ...{ 
+            inputFile = new FileInputStream(filePath); 
+            propertie.load(inputFile); 
+            inputFile.close(); 
+        } catch (FileNotFoundException ex) ...{ 
+            System.out.println("读取属性文件--->失败！- 原因：文件路径错误或者文件不存在"); 
+            ex.printStackTrace(); 
+        } catch (IOException ex) ...{ 
+            System.out.println("装载文件--->失败!"); 
+            ex.printStackTrace(); 
+        } 
+    }//end ReadConfigInfo(...) 
+
+    /** *//** 
+     * 重载函数，得到key的值 
+     * @param key 取得其值的键 
+     * @return key的值 
+     */ 
+    public String getValue(String key) 
+    ...{ 
+        if(propertie.containsKey(key))...{ 
+            String value = propertie.getProperty(key);//得到某一属性的值 
+            return value; 
+        } 
+        else 
+            return ""; 
+    }//end getValue(...) 
+
+    /** *//** 
+     * 重载函数，得到key的值 
+     * @param fileName properties文件的路径+文件名 
+     * @param key 取得其值的键 
+     * @return key的值 
+     */ 
+    public String getValue(String fileName, String key) 
+    ...{ 
+        try ...{ 
+            String value = ""; 
+            inputFile = new FileInputStream(fileName); 
+            propertie.load(inputFile); 
+            inputFile.close(); 
+            if(propertie.containsKey(key))...{ 
+                value = propertie.getProperty(key); 
+                return value; 
+            }else 
+                return value; 
+        } catch (FileNotFoundException e) ...{ 
+            e.printStackTrace(); 
+            return ""; 
+        } catch (IOException e) ...{ 
+            e.printStackTrace(); 
+            return ""; 
+        } catch (Exception ex) ...{ 
+            ex.printStackTrace(); 
+            return ""; 
+        } 
+    }//end getValue(...) 
+
+    /** *//** 
+     * 清除properties文件中所有的key和其值 
+     */ 
+    public void clear() 
+    ...{ 
+        propertie.clear(); 
+    }//end clear(); 
+    /** *//** 
+     * 改变或添加一个key的值，当key存在于properties文件中时该key的值被value所代替， 
+     * 当key不存在时，该key的值是value 
+     * @param key 要存入的键 
+     * @param value 要存入的值 
+     */ 
+    public void setValue(String key, String value) 
+    ...{ 
+        propertie.setProperty(key, value); 
+    }//end setValue(...) 
+
+    /** *//** 
+     * 将更改后的文件数据存入指定的文件中，该文件可以事先不存在。 
+     * @param fileName 文件路径+文件名称 
+     * @param description 对该文件的描述 
+     */ 
+    public void saveFile(String fileName, String description) 
+    ...{ 
+        try ...{ 
+            outputFile = new FileOutputStream(fileName); 
+            propertie.store(outputFile, description); 
+            outputFile.close(); 
+        } catch (FileNotFoundException e) ...{ 
+            e.printStackTrace(); 
+        } catch (IOException ioe)...{ 
+            ioe.printStackTrace(); 
+        } 
+    }//end saveFile(...) 
+
+    public static void main(String[] args) 
+    ...{ 
+        Configuration rc = new Configuration(".\config\test.properties");//相对路径 
+
+        String ip = rc.getValue("ipp");//以下读取properties文件的值 
+        String host = rc.getValue("host"); 
+        String tab = rc.getValue("tab"); 
+
+        System.out.println("ip = " + ip + "ip-test leng = " + "ip-test".length());//以下输出properties读出的值 
+        System.out.println("ip’s length = " + ip.length()); 
+        System.out.println("host = " + host); 
+        System.out.println("tab = " + tab); 
+        Configuration cf = new Configuration(); 
+        String ipp = cf.getValue(".\config\test.properties", "ip"); 
+        System.out.println("ipp = " + ipp); 
+//        cf.clear(); 
+        cf.setValue("min", "999"); 
+        cf.setValue("max", "1000"); 
+        cf.saveFile(".\config\save.perperties", "test"); 
+
+//        Configuration saveCf = new Configuration(); 
+//        saveCf.setValue("min", "10"); 
+//        saveCf.setValue("max", "1000"); 
+//        saveCf.saveFile(".\config\save.perperties"); 
+
+    }//end main() 
+
+}//end class ReadConfigInfo 
+
+
+java 读取property文件 
+package com; 
+import java.io.IOException; 
+import java.io.UnsupportedEncodingException; 
+import java.util.Properties; 
+public class GetProp { 
+public void GetP() { 
+Properties props = new Properties(); 
+try { 
+//资源文件存放在类文件的根目录下。即是放在src下面。 
+props.load(getClass().getClassLoader().getResourceAsStream( 
+"jin.properties")); 
+//当资源文件中有中文的时候可以采用下面的编码转化方法来读取。 
+//或者使用native2ascii jin1.properties或者jin1.txt jin.properties将资源文件进行编码转化， 
+//然后直接读取props.getProperty("name"); 
+
+System.out.println(new String(props.getProperty("name").getBytes( 
+"ISO-8859-1"), "GBK")); 
+} catch (UnsupportedEncodingException e) { 
+// TODO Auto-generated catch block 
+e.printStackTrace(); 
+} catch (IOException e) { 
+// TODO Auto-generated catch block 
+e.printStackTrace(); 
+} 
+} 
+public static void main(String[] args) { 
+GetProp a = new GetProp(); 
+a.GetP(); 
+} 
+}

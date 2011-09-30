@@ -1,0 +1,230 @@
+转自：http://www.javazoom.net/services/newsletter/xmlgeneration.html
+
+Tutorial : XML generation with JAVA
+
+XML developers used to rely on XML parsers to read XML files. They also used to rely on XML processors to transform XML to *ML (HTML, XML ...). However, most of them forget these tools to generate XML from scratch. They should not ...
+
+Below, the XML file (users.xml) you want to generate from input data. It's just a list of user. Each user has an ID a TYPE and a NAME (Full definition is available in users.dtd).
+Input data
+	
+Matching valid XML file : users.xml
+NAME 	ID 	TYPE
+Tim@Home 	PWS122 	customer
+Jack&Moud 	MX787 	manager
+John D'oé 	A4Q45 	employee
+	<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE USERS SYSTEM "users.dtd">
+<USERS>
+  <USER ID="PWD122" TYPE="customer">Tim@Home</USER>
+  <USER ID="MX787" TYPE="manager">Jack&amp;Moud</USER>
+  <USER ID="A4Q45" TYPE="employee">John D&apos;oé</USER>
+</USERS>
+
+An XML novice developer could write the following code to quickly generate users.xml :
+(1) - Serialization to file output stream -
+[...]
+String ENCODING = "ISO-8859-1";
+String[] id = {"PWD122","MX787","A4Q45"};
+String[] type = {"customer","manager","employee"};
+String[] desc = {"Tim@Home","Jack&Moud","John D'oé"};
+PrintWriter out = new PrintWriter(new FileOutputStream("users.xml"));
+out.println("<?xml version=\"1.0\" encoding=\""+ENCODING+"\"?>");
+out.println("<!DOCTYPE USERS SYSTEM \"users.dtd\">");
+out.println("<USERS>");
+for (int i=0;i<id.length;i++)
+{
+  out.println("<USER ID=\""+id[i]+"\" TYPE=\""+type[i]+"\">"+desc[i]+"</USER>");
+}
+out.println("</USERS>");
+[...]
+
+Unfortunately, this code does not generate valid XML. Look at "Jack&Moud" username, it has to be translated to "Jack&amp;Moud" because of '&' special character (called predefined entity). In addition to these specials characters, the developer has to take into account XML processing instructions (i.e. : <?xml-stylesheet type="text/xsl" href="users.xsl"?>), entity references, comments and cd-data section (An XML reference syntax is available in PDF format here).
+
+Obviously, Java XML libraries (parsers and/or processors) should be used to generate well-formed and valid XML. The first solution creates a DOM document from scratch and serialize it to XML. The following code uses Xerces to do so :
+(2) - DOM + Xerces serialization to file output stream -
+import java.io.*;
+// DOM
+import org.w3c.dom.*;
+// Xerces classes.
+import org.apache.xerces.dom.DocumentImpl;
+import org.apache.xml.serialize.*;
+[...]
+Element e = null;
+Node n = null;
+// Document (Xerces implementation only).
+Document xmldoc= new DocumentImpl();
+// Root element.
+Element root = xmldoc.createElement("USERS");
+String[] id = {"PWD122","MX787","A4Q45"};
+String[] type = {"customer","manager","employee"};
+String[] desc = {"Tim@Home","Jack&Moud","John D'oé"};
+for (int i=0;i<id.length;i++)
+{
+  // Child i.
+  e = xmldoc.createElementNS(null, "USER");
+  e.setAttributeNS(null, "ID", id[i]);
+  e.setAttributeNS(null, "TYPE", type[i]);
+  n = xmldoc.createTextNode(desc[i]);
+  e.appendChild(n);
+  root.appendChild(e);
+}
+xmldoc.appendChild(root);
+FileOutputStream fos = new FileOutputStream(filename);
+// XERCES 1 or 2 additionnal classes.
+OutputFormat of = new OutputFormat("XML","ISO-8859-1",true);
+of.setIndent(1);
+of.setIndenting(true);
+of.setDoctype(null,"users.dtd");
+XMLSerializer serializer = new XMLSerializer(fos,of);
+// As a DOM Serializer
+serializer.asDOMSerializer();
+serializer.serialize( xmldoc.getDocumentElement() );
+fos.close();
+[...]
+
+This solution works nice for small XML files but it should be avoided for big files because it's memory consuming. Indeed, the full DOM document (Element, Node, Attributes ...) is in memory before being serialized. It's the major drawback of DOM.
+
+A memory-friendly solution is to serialize the XML file on the fly through SAX.
+The code below uses Xerces to do so :
+(3) - SAX + Xerces serialization to file output stream -
+import java.io.*;
+// Xerces 1 or 2 additional classes.
+import org.apache.xml.serialize.*;
+import org.xml.sax.*;
+import org.xml.sax.helpers.*;
+[...]
+FileOutputStream fos = new FileOutputStream(filename);
+// XERCES 1 or 2 additionnal classes.
+OutputFormat of = new OutputFormat("XML","ISO-8859-1",true);
+of.setIndent(1);
+of.setIndenting(true);
+of.setDoctype(null,"users.dtd");
+XMLSerializer serializer = new XMLSerializer(fos,of);
+// SAX2.0 ContentHandler.
+ContentHandler hd = serializer.asContentHandler();
+hd.startDocument();
+// Processing instruction sample.
+//hd.processingInstruction("xml-stylesheet","type=\"text/xsl\" href=\"users.xsl\"");
+// USER attributes.
+AttributesImpl atts = new AttributesImpl();
+// USERS tag.
+hd.startElement("","","USERS",atts);
+// USER tags.
+String[] id = {"PWD122","MX787","A4Q45"};
+String[] type = {"customer","manager","employee"};
+String[] desc = {"Tim@Home","Jack&Moud","John D'oé"};
+for (int i=0;i<id.length;i++)
+{
+  atts.clear();
+  atts.addAttribute("","","ID","CDATA",id[i]);
+  atts.addAttribute("","","TYPE","CDATA",type[i]);
+  hd.startElement("","","USER",atts);
+  hd.characters(desc[i].toCharArray(),0,desc[i].length());
+  hd.endElement("","","USER");
+}
+hd.endElement("","","USERS");
+hd.endDocument();
+fos.close();
+[...]
+
+SAX is an event-based API. Basically, to read an XML file, you implement ContentHandler interface. startElement(), characters(...), endElement() methods are called when XML file is parsed. Xerces provides a reverse solution. Developer calls startElement(...), characters(...), endElement(...) SAX methods to generate the XML file.
+
+Samples above need Xerces library but what about others libraries : Crimson, JDOM,
+Xalan2, JDK 1.4 .... ? How to select an XML parser and/or an XML processor ? How to make a java code not dependant from a specific library ?
+A good solution is JAXP 1.1. JAXP 1.1 is an API developped by SUN. It allows to plug any XML parser and/or processor and "write once, run anywhere" your Java/XML code. Implementation of this API is available in JDK1.4 and provided by Xalan2 too.
+Here are similar samples for XML generation with JAXP 1.1 :
+(4) - JAXP + DOM + Serialization to servlet output stream : JDK 1.4 compliant -
+import java.io.*;
+// DOM classes.
+import org.w3c.dom.*;
+//JAXP 1.1
+import javax.xml.parsers.*;
+import javax.xml.transform.*;
+import javax.xml.transform.stream.*;
+import javax.xml.transform.dom.*;
+[...]
+// PrintWriter from a Servlet
+PrintWriter out = response.getWriter();
+// Create XML DOM document (Memory consuming).
+Document xmldoc = null;
+DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+DocumentBuilder builder = factory.newDocumentBuilder();
+DOMImplementation impl = builder.getDOMImplementation();
+Element e = null;
+Node n = null;
+// Document.
+xmldoc = impl.createDocument(null, "USERS", null);
+// Root element.
+Element root = xmldoc.getDocumentElement();
+String[] id = {"PWD122","MX787","A4Q45"};
+String[] type = {"customer","manager","employee"};
+String[] desc = {"Tim@Home","Jack&Moud","John D'oé"};
+for (int i=0;i<id.length;i++)
+{
+  // Child i.
+  e = xmldoc.createElementNS(null, "USER");
+  e.setAttributeNS(null, "ID", id[i]);
+  e.setAttributeNS(null, "TYPE", type[i]);
+  n = xmldoc.createTextNode(desc[i]);
+  e.appendChild(n);
+  root.appendChild(e);
+}
+// Serialisation through Tranform.
+DOMSource domSource = new DOMSource(xmldoc);
+StreamResult streamResult = new StreamResult(out);
+TransformerFactory tf = TransformerFactory.newInstance();
+Transformer serializer = tf.newTransformer();
+serializer.setOutputProperty(OutputKeys.ENCODING,"ISO-8859-1");
+serializer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM,"users.dtd");
+serializer.setOutputProperty(OutputKeys.INDENT,"yes");
+serializer.transform(domSource, streamResult);
+[...]
+
+(5) - JAXP + SAX + Serialization to servlet output stream : JDK 1.4 compliant -
+
+import java.io.*;
+// SAX classes.
+import org.xml.sax.*;
+import org.xml.sax.helpers.*;
+//JAXP 1.1
+import javax.xml.parsers.*;
+import javax.xml.transform.*;
+import javax.xml.transform.stream.*;
+import javax.xml.transform.sax.*;
+[...]
+// PrintWriter from a Servlet
+PrintWriter out = response.getWriter();
+StreamResult streamResult = new StreamResult(out);
+SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
+// SAX2.0 ContentHandler.
+TransformerHandler hd = tf.newTransformerHandler();
+Transformer serializer = hd.getTransformer();
+serializer.setOutputProperty(OutputKeys.ENCODING,"ISO-8859-1");
+serializer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM,"users.dtd");
+serializer.setOutputProperty(OutputKeys.INDENT,"yes");
+hd.setResult(streamResult);
+hd.startDocument();
+AttributesImpl atts = new AttributesImpl();
+// USERS tag.
+hd.startElement("","","USERS",atts);
+// USER tags.
+String[] id = {"PWD122","MX787","A4Q45"};
+String[] type = {"customer","manager","employee"};
+String[] desc = {"Tim@Home","Jack&Moud","John D'oé"};
+for (int i=0;i<id.length;i++)
+{
+  atts.clear();
+  atts.addAttribute("","","ID","CDATA",id[i]);
+  atts.addAttribute("","","TYPE","CDATA",type[i]);
+  hd.startElement("","","USER",atts);
+  hd.characters(desc[i].toCharArray(),0,desc[i].length());
+  hd.endElement("","","USER");
+}
+hd.endElement("","","USERS");
+hd.endDocument();
+[...]
+
+This last sample might be the best solution because it uses JAXP 1.1 so it will work under JDK 1.4 or JDK 1.2/1.3 with XALAN2 library (or any XML library JAXP 1.1 compliant). It's also memory-friendly because it doesn't need DOM.
+
+Assuming that you're not convinced that you should use JAXP, think about Servlet Engines (Tomcat, Resin ...) and Application servers (Websphere, Weblogic ...) .Most of them already include an XML parser/processor and try to add a new one could generate seal errors. In conclusion, well-formed XML generation is not so easy for a novice programmer. A smart, standard, portable, memory-friendly, solution should be based on JAXP 1.1 + SAX.
+Note : All samples could be downloaded as a JBuilder projet : xmlsamples.zip

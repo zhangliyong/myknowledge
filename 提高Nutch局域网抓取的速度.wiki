@@ -1,0 +1,45 @@
+如果想要提高Nutch局域网抓取的速度，大家第一个想到肯定是-threads .但是那是错误的,如果只是单单增大线程数，那根本于事无补。
+
+通过下面这组测试，我们看看-threads 是否起作用。首先在本地apache2下建立两个网站，写一个简单的Rakefile来帮助完成测试。设定depth=3,下面是Rakefile的内容:
+
+threads=1
+depth=3
+task:default => [:crawl]
+task:crawl => [:clean] do
+  t=Time.now
+  sh "bin/nutch crawl myurl -dir crawl -depth #{depth} -threads #{threads}"
+  puts Time.now-t
+end
+task:clean do
+  sh "rm -rf crawl"
+end
+
+threads的值分别为1，5，10 结果如下表:
+线程数	时间
+1	891.001462
+5	889.560529
+10	878.812949
+
+从上面表格可以看出，这根本一点作用都没有。第一种提高速度的方法就是减少抓取之间的延迟时间，我们可以通过修改conf/nutch-default.xml中fetcher.server.delay 来减少延迟时间。
+
+    fetcher.server.delay
+        抓取器在同一服务器的逐次请求所延迟的秒数
+
+我们试试减小它的值为1.0(原先的值为5.0)。经过测试，结果如下:
+线程数	时间
+1	482.807096
+5	488.666853
+10	486.67904
+
+显然速度提高了，但是线程数还是起没有作用，原因就在于conf/nutch-default.xml中fetcher.threads.per.host 配置为1。那么第二种方法就是同一时刻允许多个线程访问同一主机。
+
+    fetcher.threads.per.host
+        这个值允许同一时刻访问一台主机的最大线程数
+
+如果这个配置为1，同一时刻只允许一个线程，启动多少的线程都没用。下面我们增大这个配置为5,测试结果如下:
+线程数	时间
+1	484.754918
+5	384.201041
+10	332.934009
+
+很明显随着线程数的增大，抓取速度也在增大。如果还想再提高速度的话，可以减小抓取之间的延迟时间。不过不是修改fetcher.server.delay ,而是修改fetcher.server.min.delay 。这个配置是设定抓取器在同一服务器的逐次请求所延迟最小的秒数，这个值仅当fetcher.threads.per.host 属性值比1大时适用。

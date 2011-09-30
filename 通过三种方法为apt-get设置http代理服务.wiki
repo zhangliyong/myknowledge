@@ -1,0 +1,31 @@
+方法一：
+
+    这是一种临时的手段，如果您仅仅是暂时需要通过http代理使用apt-get，您可以使用这种方式。
+
+    在使用apt-get之前，在终端中输入以下命令（根据您的实际情况替换yourproxyaddress和proxyport）。
+
+    export http_proxy=http://yourproxyaddress：proxyport
+
+方法二：
+
+    这种方法要用到/etc/apt/文件夹下的apt.conf文件。如果您希望apt-get（而不是其他应用程序）一直使用http代理，您可以使用这种方式。
+
+    注意：某些情况下，系统安装过程中没有建立apt配置文件。下面的操作将视情况修改现有的配置文件或者新建配置文件。
+
+    sudo gedit /etc/apt/apt.conf在您的apt.conf文件中加入下面这行（根据你的实际情况替换yourproxyaddress和proxyport）。
+
+    Acquire：：http：：Proxy "http://yourproxyaddress：proxyport"；保存apt.conf文件。
+
+方法三：
+
+    这种方法会在您的主目录下的。bashrc文件中添加两行。如果您希望apt-get和其他应用程序如wget等都使用http代理，您可以使用这种方式。
+
+    gedit ~/.bashrc在您的。bashrc文件末尾添加如下内容（根据你的实际情况替换yourproxyaddress和proxyport）。
+
+    http_proxy=http://yourproxyaddress：proxyport
+
+    export http_proxy保存文件。关闭当前终端，然後打开另一个终端。
+
+    使用apt-get update或者任何您想用的网络工具测试代理。我使用firestarter查看活动的网络连接。
+
+    如果您为了纠正错误而再次修改了配置文件，记得关闭终端并重新打开，否自新的设置不会生效。

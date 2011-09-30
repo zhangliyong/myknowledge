@@ -1,0 +1,22 @@
+﻿++ 找回根密码
+
+如果忘记根密码，就必须重新安装整台机器。更惨的是，许多人都会这样做。但是启动机器并更改密码却十分简单。这并非在所有情况下都适用（比如设置了一个 GRUB 密码，但也忘记了），但这里介绍一个 Cent OS Linux 示例，说明一般情况下的操作。
+首先重启系统。重启时会跳出如图 1 所示的 GRUB 屏幕。移动箭头键，这样可以保留在此屏幕上，而不是进入正常启动。
+
+file:/opt/WikidPad/MyWiki/images/figure1.jpg
+图 1. 重启后的 GRUB 屏幕
+ 
+然后，使用箭头键选择要启动的内核，并输入 E 编辑内核行。然后便可看到如图 2 所示的屏幕：
+file:/opt/WikidPad/MyWiki/images/figure2.jpg
+图 2：准备编辑内核行
+ 
+再次使用箭头键突出显示以 kernel 开始的行，按 E 编辑内核参数。到达如图 3 所示的屏幕时，在图 3 中所示的参数后追加数字 1 即可：
+file:/opt/WikidPad/MyWiki/images/figure3.jpg
+图 3. 在参数后追加数字 1
+ 
+然后按 Enter 和 B，内核会启动到单用户模式。然后运行 passwd 命令，更改用户根密码：
+sh-3.00# passwd 
+New UNIX password:
+Retype new UNIX password:
+passwd: all authentication tokens updated successfully
+现在可以重启了，机器将使用新密码启动。

@@ -1,0 +1,48 @@
+﻿++ ssh
+
+1,
+好，下面是步骤：
+
+0. 在两侧都安装ssh
+1. 在被控端运行ssh -f -N -R 10000:localhost:22 username@主控端ip。这里的10000和22是端口号，也就是说，在主控端10000端口和被控端的22端口上建立了一个通道。
+2. 在主控端运行 ssh username@localhost -p 10000。这里的username是你被控端的username，10000就是刚才的那个端口号。
+
+ok了。
+
+2,
+内网中有一台linux电脑，公网有一台独立IP服务器，希望在任何地方操作内网电脑，则通过ssh反向连接来解决这个问题，整理记录一下。
+
+SSH自动登录
+
+客户端生成ssh的key
+cd ~/.ssh
+#产生公钥文件(id_dsa.pub)和私钥文件(id_dsa), 类型DSA, 长度1024 bits
+#注意询问passphrase的时候直接回车
+ssh-keygen -t dsa -b 1024
+#将公钥复制到远程主机去
+scp id_dsa.pub Server:~/.ssh/id_dsa.pub.Client2. Server端:
+ 
+登录服务器端
+cd ~/.ssh
+#将Client的公钥放入Server的信任列表
+cat id_dsa.pub.Client >> authorized_keys
+#更新权限，很重要
+chmod 0600 *
+从此以后Client SSH登录Server就不要手工输入密码了。
+
+
+本地脚本(pssh)
+
+killall ssh
+ssh -R 8080:localhost:22 -N  user@Server
+
+
+crontab -e
+
+3 */2 * * * sh /home/user/pssh
+
+管理内网电脑
+服务器上ssh -p 8080 user@localhost 即可
+
+
+不是个稳定可靠的方式，只是能用，用autossh可能更好，但实验没成功。内网系统Ubuntu 10.4，公网服务器Centos 5.5。

@@ -1,0 +1,9 @@
+当用jni时应该将库的名字命名为：libname.so
+在java中直接有name: static{ System.loadLibrary("name"); }
+
+当用行时应该在命令行中声明库所在的目录
+java -Djava.library.path=. classname  .是指在当前目录下。
+
+也可以用环境变量声明：
+LD_LIBRARY_PATH=.
+export LD_LIBRARY_PATH

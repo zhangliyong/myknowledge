@@ -1,0 +1,306 @@
+﻿++ GNU Screen
+
+GNU Screen 对常用SSH等工具远程链接到服务器上做事情的人来说是绝好的工具，可以大大提高工作效率。
+
+1. 第一次启动screen
+
+每一个screen进程本身代表一个session. 最简单的方法是在一个终端下直接输入screen然后回车。这时你会看到一个很简陋的greeting界面，然后你随便按一个空格它就消失了，剩下的就是普通的shell提示符，好像什么都没发生过。你可以运行一些标准shell指令，比如说ls，你会发现这个shell和别的shell没有任何不同。
+运行如下命令
+
+screen -ls
+
+你会发现它告诉你有一个screen在跑：
+
+$ screen -ls
+There is a screen on:
+8671.pts-1.inferno (Attached)
+1 Socket in /var/run/screen/S-qiuxing.
+
+现在你输入Ctrl-a, 然后单个字母w，会发现左下角出现一个提示，比如说:
+
+0*$ bash
+
+现在再按Ctrl-a然后d，这时你开头运行命令出现的那些文字都不见了。我们现在再来跑一次screen -ls:
+
+$ screen -ls
+There is a screen on:
+8671.pts-1.inferno (Detached)
+1 Socket in /var/run/screen/S-qiuxing
+
+什么都没变除了状态由Attached变成了Detached。
+
+现在你把你刚刚用的xterm关掉，重开一个xterm，或者有条件的话换一部电脑，ssh到你的第一部机器，然后输入screen -r。你看见了什么？是不是之前的那些文字都又回来了？
+
+其实真正发生的是这么一个过程：screen创建了一个socket(一般是在/var/run/screen/下面)，把它伪装成为一个虚拟文本终端（pty device）来充当标准输入输出设备，然后调用了一个shell 程序让它运行在这个文本终端（其实是个socket）上。当你从一个xterm里头detach掉了screen，screen下运行的程序不会直接退出，因为它们用的标准输入输入装置已经不是你的xterm(下面跑的那个shell)所相关的那个虚拟文本终端，而是一个socket了。
+
+2. 管理session
+
+
+一般来说，我们不会裸起一个screen. 好的practice是每次新开一个screen，都给它取一个好记的名字: 
+
+screen -S a_name
+
+下次再用screen -ls的时候就会发现它有一个名字了（就是随机数后面的那一部分）。
+
+以下为和管理session有关的命令：
+检查有多少screen session和它们的状态用screen -ls
+detach一个正在跑的session用Ctrl-a d
+reattach这个session用screen -r,
+如果有多个detached的session, 而我们又想attach到某一个的话，就用screen -r a_name
+在一个正在跑的session里头改名字: 先按Ctrl-a, 然后按冒号:, 出来一个类似vi的输入命令的界面，在里头运行这个内部命令：sessionname a_name
+
+一个很常见的情况：有时我们需要强制reattach到一个attached session，比如说忘记detach了，或者是ssh的时候网络断线了. 这个命令是: screen -RD a_name. 事实上它的实现是先给a_name session发出一个detach指令，然后在发出一个attach指令。
+
+3. 管理窗口
+
+
+生成一个新的窗口: Ctrl-a c。这个新的窗口跑的是你的shell。
+生成一个新的窗口，并且让它跑某个指定的程序: Ctrl-a :, 然后输入: screen -t <name> <n> <command> 其中<name>是窗口的名字，<n>是窗口号，<command>是指定的程序。这个命令主要是在配置文件里头用。
+关闭一个窗口: 退出这个窗口的程序，则窗口自动关闭
+在无法退出某个程序的时候强制关闭一个窗口: Ctrl-a K
+窗口列表: Ctrl-a w
+窗口切换:
+Ctrl-a ", 出现一个菜单可以选择
+Ctrl-a <n>, <n>是从0到9的窗口ID，这个命令直接切换到第<n>号窗口
+Ctrl-a SPACE, 下一个窗口
+Ctrl-a BACKSPACE, 前一个窗口
+Ctrl-a Ctrl-a, 在当前和前一个窗口之间转换，相当于Alt-Tab的功能
+Ctrl-a A, 窗口改名
+
+4. 分屏
+
+
+默认情况下screen只能把屏幕分成水平的多个区域：
+上下分成两个区域: Ctrl-a S (相当于emacs里的C-x 2)
+在两个区域里头切换: Ctrl-a TAB
+合并两个区域: Ctrl-a Q (相当于emacs里的C-x 1), Ctrl-a X (相当于emacs里头的C-x 0)
+可以在 http://fungi.yuggoth.org/vsp4s/ 下载patch来使screen能垂直分屏。但是垂直分屏后的区域刷新（redraw）非常的慢，所以基本不可用。垂直分屏快捷键：Ctrl-a V。
+5. copy/paste
+
+
+正常模式下screen把所有的不以Ctrl-a开头的命令都完全透明地pass给窗口里头的程序了。其实screen还有一个copy/paste模式，进入这个模式后screen的行为就更像一个text editor（vi），你可以copy/paste，也可以上下移动（相当于scroll window）。
+
+- 进入copy/paste mode: Ctrl-a ESC或者Ctrl-a [.
+- 在c/p mode下移动光标: 上下左右箭头，pgup/pgdown等。vi的hjkl,BE,/?等等也都work
+- Set mark: SPACE (类似emacs里面的Ctrl-SPACE)
+- 两个mark里的内容自动进入screen的c/p buffer, 并且退出c/p mode。
+- 这个c/p buffer还可以用文件写出来: Ctrl-a >
+
+在正常模式下，Ctrl-a ]能够paste刚刚选中的内容。
+
+6. 其它有用功能/注意事项
+
+
+第一重要的注意事项: 不要乱按Ctrl-a s. 它会锁死你的shell。不过不小心碰到了也别怕，再按一下Ctrl-a q，你的shell就活过来了。
+
+第二重要的事情: 我习惯了在shell/emacs里用Ctrl-a而不是Home跳到句首。可是现在Ctrl-a被screen占用了。那么，我们怎么输入一个Ctrl-a? 答案: Ctrl-a再加字母a.
+
+推论: 如果在一个screen里头不小心attach了另外一个screen怎么办? 用Ctr-a d来detach里头的那个screen.
+
+- 查看系统时间等信息: Ctrl-a t
+- 查看screen本身的信息: Ctrl-a v
+- 锁住屏幕: Ctrl-a x
+- 清理屏幕: Ctrl-a l
+- 有时候screen会显示一些信息，想要显示上一次显示的提示内容的话:Ctrl-a m
+- 给当前窗口录像(生成一个log，记录所有的信息): Ctrl-a H
+- 使用visual bell: Ctrl-a Ctrl-g
+
+* 配置文件
+
+screen的基本配置文件是~/.screenrc（用户目录下的一个隐藏文件）。事实上在这里控制的screen参数都可以在一个正在跑的screen里面通过进入命令行模式（Ctrl-a :），输入相关命令来实现。但写配置文件可以省不少重复性的工作。
+
+启动screen时有一个"-c"的参数来使用任何一个指定文件作为配置文件。比如:
+
+screen -c .screenrc2
+
+* 高级用法
+
+** 关注某个窗口
+
+有时候我们可能开了一个窗口来跑一个要跑很久的程序，又或者那个窗口跑的是pine/mutt，但我们在另外一个窗口干活。绝大多数时候第一个窗口都不会有任何信息，但假设出现了变化比如说程序跑完了或者收到了新的email，我们也希望能够在干活的当前窗口得到一个提示。
+
+还有另外一种相反的情况，比如说编译一个大程序，不断的会出各种信息。但如果不出了，那就说明编译完了（或者错了），这时候我们也希望得到通知。这个功能大约对于Gentoo用户来说是最有用的.
+
+这些都可以通过打开/关闭monitoring来实现。
+
+- Ctrl-a M. 这样当前窗口如果出现变化，系统会通过message来通知你
+- Ctrl-a _. 正好是上面的反面，如果当前窗口15秒都没动静了，则screen会发一个msg.
+
+** caption/hardstatus line
+
+之前我提到过screen可以实现类似于gnome panel的功能。这个功能在screen里面叫做caption line或者hardstatus line。它的配置看起来比较复杂，但一旦搞明白了你就可以用它干很多很cool的事情。一个类比是配置bash的提示符，也是属于不大好配置但很强大的东西。
+
+我先举一个简单的例子吧:
+
+caption always "%{+b Yk}%w"
+hardstatus alwayslastline "Host: %H Load: %l "
+
+它的效果是出现了两条panel, 第一条叫做caption line, 里头的内容是带颜色的窗口信息, 第二条是hardstatus line, 里头有host和system load的信息。
+
+在"%{+b Yk}%w"里头，%是escape sequence，+b是指粗体，Yk指的是亮黄(Y)字体，配黑色(k)背景，%w是窗口号/名字。hardstatus bar里面，%H是hostname, %l是系统load（和top里头显示的一样），其他就是一般的字符。
+
+下面是一个比较复杂的hardstatus line配置, 视觉效果比单纯的%w要好：
+
+hardstatus alwayslastline '%{Yk}%-w%{.Yk}%n %t%{-}%+w %=%{.w}'
+
+更多的色彩，信息，请参阅screen manual里头关于string escapes那一章。
+
+** Panel插件
+
+虽然screen提供了很多string escapes, 但它们还是不可能满足所有人所有的需要。比如说我自己就想知道系统使用了多少内存，有的人可能还想查看有没有新邮件，等等。在gnome panel里头，这些都是通过panel插件来实现的。在screen的caption/hardstatus line里也有一个类似的机制，让你把任何一个指定的程序的output放在panel上。
+
+一个简单的例子：
+
+backtick 1 5 5 uptime
+hardstatus alwayslastline "%1`"
+
+解释一下：backtick 1 5 5 uptime的意思是定义外部命令uptime的标准输出作为
+一个string escape, ID为1. 一次显示5秒钟，5秒钟之后重新运行一次。
+
+比较复杂的例子(这也是我自己在用的screenrc)：
+
+backtick 1 5 5 /home/qiuxing/bin/my_sysload1
+backtick 2 5 5 /home/qiuxing/bin/my_free
+
+hardstatus string '%{Yk}%-w%{.Yk}%n %t%{-}%+w %=%{.w} %{.Yr}%1` %{.Yb}%2`M %
+{kY}%C'
+
+其中my_sysload1和my_free的内容如下：
+
+my_sysload1：
+
+#!/bin/bash
+cat /proc/loadavg | cut -d" " -f1
+
+my_free: 
+free -m | tail -n 2 | head -n 1 | cut -c27-29
+
+** 256色
+
+比较新的screen支持256色。如果自己编译，记得在编译的时候打开这个选项。Feisty和之前的Ubuntu下的screen没有加这个编译选项，但在Gutsy里这个选项已经有了。我知道的支持256色的程序有vi/emacs/elinks。如果你知道别的文本模式程序支持256色，请务必让我知道。
+
+如果你知道你的screen支持256色，请在.screenrc里头加入这么几句：
+
+term xterm-256color
+attrcolor b ".I"
+termcapinfo xterm-256color 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+defbce "on"
+
+其中第一句让screen伪装成一个xterm-256color，第二句让screen使用bold字体，第三句告诉screen怎么定义前景背景等信息，最后一句是让screen用背景色来erase text。
+
+另外要确认一下你的系统上的确有xterm-256color这个term的信息。在Ubuntu里，这个库叫做ncurses-term。
+
+** X/鼠标支持
+
+有一些文本程序也支持鼠标（emacs, elinks, w3m），有的甚至还支持inline picture display(w3m)。screen对于这些都支持得很好。只要记住远程连接的时候打开X11 forwarding开关（ssh -X），另外要检查一下shell变量DISPLAY是不是设置对了（本地显示应该是:0.0，远程一般是:10.0之类的东西）。
+
+** 编码转换
+
+screen还有一个鲜为人知的功能：实现编码转换。比如说mrxvt只能支持gbk，但不能支持unicode。可是我的中文文件都是unicode编码的。这时就可以通过screen来实现编码转换：
+
+encoding GBK UTF-8
+
+只要在一个支持unicode的terminal里头生成一个screen session，detach之，下次在一个编码为zh_CN.gbk的mrxvt里头reattach上这个session，所有的zh_CN.utf8编码的中文文字就会自动转换为gbk格式。
+
+** 多用户支持
+
+screen还可以支持多用户。也就是说一个用户生成了一个session，然后让guest来参与。具体的做法是先让screen变成一个setuid root的程序，然后在screenrc里头允许另外一个用户连接。
+
+如果你用过这个功能就会发现它相当的cool。但因为有一定的security concern，我就不写太详细了。真要想用的话请参照这个Gentoo howto:
+
+http://gentoo-wiki.com/HOWTO_Snoop_terminal_session#Screen
+
+* 附录
+
+** screenrc文件范例
+
+# 和256色相关的配置
+term xterm-256color
+attrcolor b ".I"
+termcapinfo xterm-256color 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+defbce "on"
+
+# 编码转换
+encoding GBK UTF-8
+
+# 使用visual bell
+vbell on
+
+# 断线的时候自动detach
+autodetach on
+
+# 不要出来那个烦人的greeting
+startup_message off
+
+# make the shell in every window a login shell
+# 意思是会去执行~/.bash_profile
+shell -$SHELL
+
+# 在copy/paste模式下可以回溯到5000行的历史
+defscrollback 5000
+
+#remove some stupid / dangerous key bindings
+bind k
+bind ^k
+bind .
+bind ^\
+bind \\
+bind ^h
+bind h
+#make them better
+bind 'K' kill
+bind 'I' login on
+bind 'O' login off
+bind '}' history
+
+# default windows
+
+screen -t work 0
+screen -t shell 1
+screen -t su 3 sudo su -
+screen -t others 4 
+chdir /home/qiuxing/Documents/writing/linux
+screen -t notes 5
+chdir
+screen -t mutt 6 mutt
+select 0
+
+# hardstatus line hack
+backtick 1 5 5 /home/xqiu/bin/my_sysload1
+backtick 2 5 5 /home/xqiu/bin/my_free
+
+hardstatus alwayslastline '%{Yk}%-w%{.Yk}%n %t%{-}%+w %=%{.w} %{.Yr}%1` %{.
+Yb}%2`M %{kY}%C'
+
+** 常用文本模式程序
+
+- 文件管理器：
+1. bash
+2. mc (midnight commander)
+- 系统资源管理
+1. top
+2. htop
+3. ps
+- 文本编辑: emacs -nw, vi, nano, ...
+- 网络浏览器: w3m(中文支持很好), elinks
+- 聊天:
+1. finch. 这个是pidgin/gaim的文本模式, 唯一支持QQ的text mode程序
+2. centericq 很早以前用过，功能也很强大
+3. irssi 最好的IRC聊天室client
+4. irssi + bitlbee 如果你用这个组合，你就是真正的chat geek了！
+- 邮件/新闻组
+1. mutt
+2. pine
+3. gnus
+- 文件传输
+1. lftp (支持很多协议包括sftp, www)
+2. wget 
+3. rsync
+4. unison
+- 科学运算 R, octave, maxima, python (scipy), ...
+- 网络调试
+1. tcpdump
+2. nmap
+3. netcat
+- 音乐 mpg321, mplayer, 还有一些比较复杂的比如说cplay, moc等。
+- Bittorrent: rtorrent

@@ -1,0 +1,13 @@
+﻿++ 用Ant完成生成javadoc的任务
+
+用ant生成javadoc相当简单，命令如下：
+<target name="create_doc">
+  <!-- destdir是javadoc生成的目录位置 -->
+  <javadoc destdir="${distDir}" encoding="UTF-8" docencoding="UTF-8">
+   <!-- dir是你的代码位置，记住是java文件的位置而不是class文件的位置哦，第一次用这个命令容易忽略这点 -->
+   <packageset dir="${srcDir}">
+    <!-- exclude是不想生成哪些类的javadoc -->
+    <exclude name="${excludeClasses}" />
+   </packageset>
+  </javadoc>
+ </target>
